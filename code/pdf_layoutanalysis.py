@@ -4,6 +4,10 @@ import json
 from collections import Counter
 from tqdm import tqdm
 
+
+DATA_PATH = r'../data/BW/'
+
+
 with open(os.path.join(DATA_PATH, "c_x0.json"), encoding="utf-8") as fp:
 	c_x0 = json.loads(fp.read())
 Counter(c_x0)

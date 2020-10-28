@@ -12,7 +12,8 @@ import json
 from datetime import datetime
 
 # os.chdir('/Volumes/Datahouse/Users/Stipe/Documents/Studium/Master VWL/Masterarbeit/plenarprotokolle/code')
-os.chdir('/home/felix/privat/plenarprotokolle/code')
+os.chdir('../code')
+
 
 from lib import helper
 
@@ -28,8 +29,8 @@ BEGIN_MARK = re.compile(r'Protokoll')
 END_MARK = re.compile(r'^Schluss:?\s+[0-9]{1,2}:[0-9]{1,2}\s+Uhr')
 CHAIR_MARK = re.compile(r'^(Präsident(?:in)?|Vizepräsident(?:in)?|Alterspräsident(?:in)?|Stellv\. Präsident(?:in)?)\s+(.+?)<poi_end>')
 SPEAKER_MARK = re.compile(r'^(Abg\.|Abgeordneter|Abgeordnete)\s+(.+?)(?:\s+)?<poi_end>(?:\s+)?(.+?):')
-EXECUTIVE_MARK_FIRST_LINE = re.compile(r'^(Justizminister(?:in)?|Innenminister(?:in)?|Verkehrsminister(?:in)?|Ministerpräsident(?:in)?|Finanzminister(?:in)?|(?:Staats)?[Mm]inister(?:in)?)\s+(.+?)(?:\s+)?<poi_end>')
-EXECUTIVE_MARK_SECOND_LINE = re.compile(r'^(Justizminister(?:in)?|Innenminister(?:in)?|Verkehrminister(?:in)?|Finanzminister(?:in)?|Ministerpräsident(?:in)?|(?:Staats)?[Mm]inister(?:in)?)\s+(.+)')
+EXECUTIVE_MARK_FIRST_LINE = re.compile(r'^(Justizminister(?:in)?|Innenminister(?:in)?|Verkehrsminister(?:in)?|Ministerpräsident(?:in)?|Finanzminister(?:in)?|Wirtschaftsminister(?:in?)?|(?:Staats)?[Mm]inister(?:in)?)\s+(.+?)(?:\s+)?<poi_end>')
+EXECUTIVE_MARK_SECOND_LINE = re.compile(r'^(Justizminister(?:in)?|Innenminister(?:in)?|Verkehrsminister(?:in)?|Ministerpräsident(?:in)?|Finanzminister(?:in)?|Wirtschaftsminister(?:in?)?|(?:Staats)?[Mm]inister(?:in)?)\s+(.+?)(?:\s+)?<poi_end>')
 
 OFFICIALS_MARK = re.compile(r'^(Staatssekretärin|Staatssekretär|Staatsrätin|Staatsrat)\s+(.+?)(?:\s+)?<poi_end>')
 
@@ -69,7 +70,7 @@ for filename in sorted(files):
 
     print("Loading transcript: %s/%.3d, from %s" % (wp, session, filename))
 
-    lines = text.split('\n')
+    lines = text.split('\r\n')
 
     # trigger to skip lines until date is captured
     date_captured = False
