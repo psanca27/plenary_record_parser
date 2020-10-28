@@ -1,1 +1,4 @@
-/code/BW
+/data/BW
+/code/.ipynb_checkpoints/
+/code/lib/.ipynb_checkpoints/
+/data/data.sqlite
