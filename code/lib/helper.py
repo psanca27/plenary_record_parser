@@ -56,6 +56,19 @@ def cleans_line_sn(line):
     return re.sub(r'-(?:\s+)?$',  '', line)
 
 def cleans_executive_speaker_bw(new_speaker, wp, date):
+    if wp==12:
+        if 'Wissenschaft, Forschung und Kunst' in new_speaker:
+            new_speaker = 'von Trotha'
+        elif 'Kultus, Jugend und Sport' in new_speaker:
+            new_speaker = 'Annette Schavan'
+        elif 'Umwelt und Verkehr' in new_speaker:
+            new_speaker = 'Ulrich Müller'
+        elif 'ländlichen Raum' in new_speaker:
+            new_speaker = 'Gerdi Staiblin'           
+        elif 'Staatsministerium' in new_speaker:
+            new_speaker = 'Dr. Palmer'           
+
+
     if wp==15:
         if 'Finanzen und Wirtschaft' in new_speaker:
             new_speaker = 'Nils Schmid'
