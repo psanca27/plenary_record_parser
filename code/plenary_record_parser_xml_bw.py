@@ -19,7 +19,7 @@ from lib import helper
 
 log = logging.getLogger(__name__)
 
-locale.setlocale(locale.LC_TIME, "de_DE.utf-8")
+locale.setlocale(locale.LC_TIME, "de_DE")
 
 STATE = 'BW'
 
@@ -29,8 +29,9 @@ BEGIN_MARK = re.compile(r'Protokoll')
 END_MARK = re.compile(r'^Schluss:?\s+[0-9]{1,2}:[0-9]{1,2}\s+Uhr')
 CHAIR_MARK = re.compile(r'^(Präsident(?:in)?|Vizepräsident(?:in)?|Alterspräsident(?:in)?|Stellv\. Präsident(?:in)?)\s+(.+?)<poi_end>')
 SPEAKER_MARK = re.compile(r'^(Abg\.|Abgeordneter|Abgeordnete)\s+(.+?)(?:\s+)?<poi_end>(?:\s+)?(.+?):')
-EXECUTIVE_MARK_FIRST_LINE = re.compile(r'^(Justizminister(?:in)?|Innenminister(?:in)?|Verkehrsminister(?:in)?|Ministerpräsident(?:in)?|Finanzminister(?:in)?|Wirtschaftsminister(?:in?)?|(?:Staats)?[Mm]inister(?:in)?)\s+(.+?)(?:\s+)?<poi_end>')
-EXECUTIVE_MARK_SECOND_LINE = re.compile(r'^(Justizminister(?:in)?|Innenminister(?:in)?|Verkehrsminister(?:in)?|Ministerpräsident(?:in)?|Finanzminister(?:in)?|Wirtschaftsminister(?:in?)?|(?:Staats)?[Mm]inister(?:in)?)\s+(.+?)(?:\s+)?<poi_end>')
+EXECUTIVE_MARK_FIRST_LINE = re.compile(r'^(Justizminister(?:in)?|Innenminister(?:in)?|Verkehrsminister(?:in)?|Finanzminister(?:in)?|Wirtschaftsminister(?:in?)?|Ministerpräsident(?:in)?|(?:Staats)?[Mm]inister(?:in)?)\s+(.+?)(?:\s+)?<poi_end>')
+EXECUTIVE_MARK_SECOND_LINE = re.compile(r'^(Justizminister(?:in)?|Innenminister(?:in)?|Verkehrsminister(?:in)?|Finanzminister(?:in)?|Wirtschaftsminister(?:in?)?|Ministerpräsident(?:in)?|(?:Staats)?[Mm]inister(?:in)?)\s+(.+)')
+
 
 OFFICIALS_MARK = re.compile(r'^(Staatssekretärin|Staatssekretär|Staatsrätin|Staatsrat)\s+(.+?)(?:\s+)?<poi_end>')
 
@@ -50,7 +51,7 @@ files = [os.path.join(dp, f) for dp, dn, fn in os.walk(os.path.expanduser(DATA_P
 
 db = os.environ.get('DATABASE_URI', 'sqlite:///../data/data.sqlite')
 eng = dataset.connect(db)
-table = eng['de_landesparlamente_plpr']
+table = eng['BW']
 
 ls_speeches = []
 ls_interjection_length = []
@@ -58,8 +59,8 @@ ls_text_length = []
 
 debug = True
 
-for filename in sorted(files):
-    wp, session = int(filename[14:16]), int(filename[17:21])
+for filename in sorted(files[:30]):
+    wp, session = int(filename[11:13]), int(filename[14:18])
     print(wp, session)
 
     # deletes existing entries for this state's election period and session. e.g SH 18, 001
@@ -109,6 +110,15 @@ for filename in sorted(files):
     servant = False
     party = None
     role = None
+    
+    #party = None
+    #ministerium = None
+
+    #deputy = False
+    #president = False
+    #minister = False
+    #other_role = False
+
 
     # counts to keep order
     seq = 0
@@ -122,6 +132,8 @@ for filename in sorted(files):
         #     import pdb; pdb.set_trace()
         if not date_captured and DATE_CAPTURE.search(line):
             date = DATE_CAPTURE.search(line).group(1)
+            #if date.split()[1] == 'März':
+                #date = date.split()[0] + ' ' + 'March' + ' ' + date.split()[2]           
             date = datetime.strptime(date, '%d. %B %Y').strftime('%Y-%m-%d')
             #import pdb; pdb.set_trace()
             print('date captured ' + date)
@@ -158,14 +170,30 @@ for filename in sorted(files):
                 servant = False
                 party = None
                 role = 'court of audit'
+                
+                #party = None
+                #ministerium = None
+                #deputy = False
+                #president = False
+                #minister = False
+                #other_role = 'court of audit'
+                
             elif CHAIR_MARK.match(line.strip()):
                 s = CHAIR_MARK.match(line.strip())
-                new_speaker = s.group(2).replace(':', '')
+                new_speaker = s.group(0).replace(':<poi_end>', '')
                 president = True
                 executive = False
                 servant = False
                 party = None
                 role = 'chair'
+                
+                #party = None
+                #ministerium = None
+                #deputy = False
+                #president = True
+                #minister = Fal
+                #other_role = False                
+                
             elif DATA_PROTECTION_MARK.match(line.strip()):
                 s = DATA_PROTECTION_MARK.match(line.strip())
                 new_speaker = s.group(1)
@@ -174,14 +202,22 @@ for filename in sorted(files):
                 servant = False
                 party = None
                 role = 'data protection officer'
-            elif LHR_MARK.match(line.strip()):
-                s = LHR_MARK.match(line.strip())
-                new_speaker = s.group(1)
-                president = False
-                executive = False
-                servant = False
-                party = None
-                role = 'court of audit'
+                
+                #party = None
+                #ministerium = None
+                #deputy = False
+                #president = False
+                #minister = False
+                #other_role = 'data protection officer'                       
+                
+            #elif LHR_MARK.match(line.strip()):  #repetition?
+                #s = LHR_MARK.match(line.strip())
+                #new_speaker = s.group(1)
+                #president = False
+                #executive = False
+                #servant = False
+                #party = None
+                #role = 'court of audit'
             elif OFFICIALS_MARK.match(line.strip()):
                 s = OFFICIALS_MARK.match(line.strip())
                 new_speaker = s.group(2).replace(':', '')
@@ -190,6 +226,14 @@ for filename in sorted(files):
                 executive = False
                 servant = True
                 role = 'secretary'
+                
+                #party = None
+                #ministerium = None
+                #deputy = False
+                #president = False
+                #minister = False
+                #other_role = 'data protection officer'
+                
             elif EXECUTIVE_MARK_FIRST_LINE.match(line.strip()):
                 s = EXECUTIVE_MARK_FIRST_LINE.match(line.strip())
                 new_speaker = s.group(2)
