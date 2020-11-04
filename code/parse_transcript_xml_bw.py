@@ -7,6 +7,8 @@ from collections import Counter
 import json
 import logging
 
+WEIRD_BOLD = re.compile(r'^[A-Z]{6}\+')
+
 
 def lookahead(iterable):
     """Pass through all values from the given iterable, augmented by the
@@ -106,12 +108,12 @@ def parseXML(xml_in, params, state):
                 for char in chars:
                     if poi:
                         if char.attrib:
-                            if "Bold" not in char.attrib['font']:
+                            if "Bold" not in char.attrib['font'] and 'MSTT31c238' not in char.attrib['font'] and not WEIRD_BOLD.search(char.attrib['font']) :
                                 #import pdb; pdb.set_trace()
                                 textbox_text = textbox_text + '<poi_end>'
                                 poi = False
                     elif char.attrib:
-                        if "Bold" in char.attrib['font']:
+                        if "Bold" in char.attrib['font'] or 'MSTT31c238' in char.attrib['font'] or WEIRD_BOLD.search(char.attrib['font']):
                             #import pdb; pdb.set_trace()
                             textbox_text = textbox_text + '<poi_begin>'
                             poi = True
@@ -221,7 +223,7 @@ def iteratesFiles(state):
     files = [os.path.join(dp, f) for dp, dn, fn in os.walk(os.path.expanduser(DATA_PATH)) for f in fn if f.endswith(".xml")]
     with open(os.path.join(DATA_PATH, "params_" + state + ".json"), encoding="utf-8") as fp:
         params = json.loads(fp.read())
-    for filename in files:
+    for filename in files[-2:]:
         print(filename)
         result = parseXML(filename, params=params, state=state)
         with open(filename.replace('.xml', '_xml.txt').replace('BW/', 'BW/bw_'), "w", encoding="utf-8") as fp:
