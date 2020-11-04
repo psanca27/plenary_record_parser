@@ -29,8 +29,8 @@ BEGIN_MARK = re.compile(r'Protokoll')
 END_MARK = re.compile(r'^Schluss:?\s+[0-9]{1,2}:[0-9]{1,2}\s+Uhr')
 CHAIR_MARK = re.compile(r'^(Präsident(?:in)?|Vizepräsident(?:in)?|Alterspräsident(?:in)?|Stellv\. Präsident(?:in)?)\s+(.+?)<poi_end>')
 SPEAKER_MARK = re.compile(r'^(Abg\.|Abgeordneter|Abgeordnete)\s+(.+?)(?:\s+)?<poi_end>(?:\s+)?(.+?):')
-EXECUTIVE_MARK_FIRST_LINE = re.compile(r'^(Justizminister(?:in)?|Innenminister(?:in)?|Verkehrsminister(?:in)?|Finanzminister(?:in)?|Wirtschaftsminister(?:in?)?|Ministerpräsident(?:in)?|(?:Staats)?[Mm]inister(?:in)?)\s+(.+?)(?:\s+)?<poi_end>')
-EXECUTIVE_MARK_SECOND_LINE = re.compile(r'^(Justizminister(?:in)?|Innenminister(?:in)?|Verkehrsminister(?:in)?|Finanzminister(?:in)?|Wirtschaftsminister(?:in?)?|Ministerpräsident(?:in)?|(?:Staats)?[Mm]inister(?:in)?)\s+(.+)')
+EXECUTIVE_MARK_FIRST_LINE = re.compile(r'^(Justizminister(?:in)?|Innenminister(?:in)?|Verkehrsminister(?:in)?|Finanzminister(?:in)?|Wirtschaftsminister(?:in?)?|Sozialminister(?:in?)?|Umweltminister(?:in?)?|Ministerpräsident(?:in)?|(?:Staats)?[Mm]inister(?:in)?)\s+(.+?)(?:\s+)?<poi_end>')
+EXECUTIVE_MARK_SECOND_LINE = re.compile(r'^(Justizminister(?:in)?|Innenminister(?:in)?|Verkehrsminister(?:in)?|Finanzminister(?:in)?|Wirtschaftsminister(?:in?)?|Sozialminister(?:in?)?|Umweltminister(?:in?)?|Ministerpräsident(?:in)?|(?:Staats)?[Mm]inister(?:in)?)\s+(.+)')
 
 
 OFFICIALS_MARK = re.compile(r'^(Staatssekretärin|Staatssekretär|Staatsrätin|Staatsrat)\s+(.+?)(?:\s+)?<poi_end>')
@@ -49,9 +49,9 @@ DATE_CAPTURE = re.compile(r'([0-9]{1,2}\.\s+.+\s+[0-9]{4})')
 
 files = [os.path.join(dp, f) for dp, dn, fn in os.walk(os.path.expanduser(DATA_PATH)) for f in fn if f.endswith("xml.txt")]
 
-db = os.environ.get('DATABASE_URI', 'sqlite:///../data/data.sqlite')
-eng = dataset.connect(db)
-table = eng['BW']
+#db = os.environ.get('DATABASE_URI', 'sqlite:///../data/data.sqlite')
+#eng = dataset.connect(db)
+#table = eng['BW']
 
 ls_speeches = []
 ls_interjection_length = []
@@ -59,12 +59,12 @@ ls_text_length = []
 
 debug = True
 
-for filename in sorted(files[:30]):
+for filename in sorted(files):
     wp, session = int(filename[11:13]), int(filename[14:18])
     print(wp, session)
 
     # deletes existing entries for this state's election period and session. e.g SH 18, 001
-    table.delete(wp=wp, session=session, state=STATE)
+    #table.delete(wp=wp, session=session, state=STATE)
 
     with open(filename, 'rb') as fh:
         text = fh.read().decode('utf-8')
@@ -110,9 +110,7 @@ for filename in sorted(files[:30]):
     servant = False
     party = None
     role = None
-    
-    #party = None
-    #ministerium = None
+    ministerium = None
 
     #deputy = False
     #president = False
@@ -128,6 +126,7 @@ for filename in sorted(files[:30]):
     speeches = [] 
 
     for line, has_more in helper.lookahead(lines):
+        line = helper.replace_unrecognized_chars_bw(line)
         # if '<identation>herer Finanzminister aber ganz anders gesehen mit' in line:
         #     import pdb; pdb.set_trace()
         if not date_captured and DATE_CAPTURE.search(line):
@@ -169,15 +168,16 @@ for filename in sorted(files[:30]):
                 executive = False
                 servant = False
                 party = None
+                ministerium = None
                 role = 'court of audit'
                 
+                #new_speaker = s.group(1)
                 #party = None
                 #ministerium = None
                 #deputy = False
                 #president = False
                 #minister = False
                 #other_role = 'court of audit'
-                
             elif CHAIR_MARK.match(line.strip()):
                 s = CHAIR_MARK.match(line.strip())
                 new_speaker = s.group(0).replace(':<poi_end>', '')
@@ -185,6 +185,7 @@ for filename in sorted(files[:30]):
                 executive = False
                 servant = False
                 party = None
+                ministerium = None
                 role = 'chair'
                 
                 #party = None
@@ -201,6 +202,7 @@ for filename in sorted(files[:30]):
                 executive = False
                 servant = False
                 party = None
+                ministerium = None
                 role = 'data protection officer'
                 
                 #party = None
@@ -220,11 +222,12 @@ for filename in sorted(files[:30]):
                 #role = 'court of audit'
             elif OFFICIALS_MARK.match(line.strip()):
                 s = OFFICIALS_MARK.match(line.strip())
-                new_speaker = s.group(2).replace(':', '')
+                new_speaker = s.group(0).replace(':<poi_end>', '').replace(':', '').strip()
                 party = None
                 president = False
                 executive = False
                 servant = True
+                ministerium = None
                 role = 'secretary'
                 
                 #party = None
@@ -243,6 +246,8 @@ for filename in sorted(files[:30]):
                 president = False
                 executive = True
                 servant = False
+                ministerium = s.group(1)
+
             elif EXECUTIVE_MARK_SECOND_LINE.match(line.strip()):
                 s = EXECUTIVE_MARK_SECOND_LINE.match(line.lstrip())
                 new_speaker = s.group(2)
@@ -252,6 +257,8 @@ for filename in sorted(files[:30]):
                 president = False
                 executive = True
                 servant = False
+                ministerium = s.group(1)
+
             elif SPEAKER_MARK.match(line.strip()) and not line.startswith('[') and not line.startswith('('):
                 s = SPEAKER_MARK.match(line.strip())
                 new_speaker = s.group(2)
@@ -260,6 +267,8 @@ for filename in sorted(files[:30]):
                 servant = False
                 party = s.group(3)
                 role = 'mp'
+                ministerium = None
+
             else:
                 if POI_ONE_LINER.match(line):
                     issue = POI_ONE_LINER.match(line).group(1)
@@ -270,7 +279,9 @@ for filename in sorted(files[:30]):
             line = line.replace('<poi_end>', '')
 
             if executive:
-                new_speaker = helper.cleans_executive_speaker_bw(new_speaker, wp, date)
+                new_speaker, ministerium = helper.cleans_executive_speaker_bw(new_speaker, ministerium, wp, date)
+            if role == 'secretary':
+                ministerium = helper.ministerium_secretary(new_speaker, ministerium, wp, date)
 
         if not poi and current_speaker:
             if new_speaker:            
@@ -312,6 +323,7 @@ for filename in sorted(files[:30]):
                                            'wp': wp,
                                            'session': session,
                                            'president': current_president,
+                                           'ministerium': [current_ministerium],
                                            'role': [current_role],
                                            'state': [STATE],
                                            'interjection': interjection,
@@ -331,6 +343,7 @@ for filename in sorted(files[:30]):
                        'wp': wp,
                        'session': session,
                        'president': current_president,
+                       'ministerium': current_ministerium,
                        'role': current_role,
                        'state': STATE,
                        'interjection': interjection,
@@ -338,7 +351,7 @@ for filename in sorted(files[:30]):
                        'date': date,
                        'issue': issue}
 
-                    table.insert(speech_dict)
+                    #table.insert(speech_dict)
 
                 if END_MARK.search(line):
                     in_session = False
@@ -380,6 +393,7 @@ for filename in sorted(files[:30]):
                                                'wp': wp,
                                                'session': session,
                                                'president': current_president,
+                                               'ministerium': [current_ministerium],
                                                'role': [current_role],
                                                'state': [STATE],
                                                'interjection': interjection,
@@ -399,6 +413,7 @@ for filename in sorted(files[:30]):
                                                'wp': wp,
                                                'session': session,
                                                'president': current_president,
+                                               'ministerium': current_ministerium,
                                                'role': current_role,
                                                'state': STATE,
                                                'interjection': interjection,
@@ -406,7 +421,7 @@ for filename in sorted(files[:30]):
                                                'date': date,
                                                'issue': issue}
 
-                        table.insert(speech_dict)
+                        #table.insert(speech_dict)
                         text = []
 
                 sub += 1
@@ -438,6 +453,7 @@ for filename in sorted(files[:30]):
                                            'wp': wp,
                                            'session': session,
                                            'president': current_president,
+                                           'ministerium': [current_ministerium],
                                            'role': [current_role],
                                            'state': [STATE],
                                            'interjection': [interjection],
@@ -457,6 +473,7 @@ for filename in sorted(files[:30]):
                                            'wp': wp,
                                            'session': session,
                                            'president': current_president,
+                                           'ministerium': current_ministerium,
                                            'role': current_role,
                                            'state': STATE,
                                            'interjection': interjection,
@@ -464,7 +481,7 @@ for filename in sorted(files[:30]):
                                            'date': date,
                                            'issue': issue}
 
-                        table.insert(speech_dict)
+                        #table.insert(speech_dict)
 
                     sub += 1
                 interjection = False
@@ -538,6 +555,7 @@ for filename in sorted(files[:30]):
             current_executive = executive
             current_servant = servant
             current_role = role
+            current_ministerium = ministerium
 
         if not has_more and (in_session or interjection):
             print(str(wp) + ' ' + str(session) + ' : no match for end mark -> error')
@@ -546,7 +564,7 @@ for filename in sorted(files[:30]):
     ls_speeches.append(pd_session_speeches)
 
 pd_speeches = pd.concat(ls_speeches).reset_index()
-pd_speeches.to_csv(os.path.join(DATA_PATH, STATE + '_test.csv'))
+#pd_speeches.to_csv(os.path.join(DATA_PATH, STATE + '_test.csv'))
 
 # checks
 # interjection length
@@ -557,3 +575,6 @@ if debug:
     idx_txt = [i for i, e in enumerate(ls_text_length[0:10]) if e[0] > 15]
 
     pd_speeches.loc[:, ['wp', 'session', 'seq']].groupby(['wp', 'session']).max()
+    
+    
+    
