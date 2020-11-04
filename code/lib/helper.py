@@ -55,20 +55,90 @@ def cleans_line_sn(line):
     """Cleans line from unwanted characters too many spaces"""
     return re.sub(r'-(?:\s+)?$',  '', line)
 
-def cleans_executive_speaker_bw(new_speaker, wp, date):
+def cleans_executive_speaker_bw(new_speaker, mnstr, wp, date):
     if wp==12:
         if 'Wissenschaft, Forschung und Kunst' in new_speaker:
             new_speaker = 'von Trotha'
+            mnstr = 'Wissenschaft, Forschung und Kunst'
         elif 'Kultus, Jugend und Sport' in new_speaker:
             new_speaker = 'Annette Schavan'
+            mnstr = 'Kultus, Jugend und Sport'
         elif 'Umwelt und Verkehr' in new_speaker:
             new_speaker = 'Ulrich Müller'
+            mnstr = 'Umwelt und Verkehr'
         elif 'ländlichen Raum' in new_speaker:
-            new_speaker = 'Gerdi Staiblin'           
+            new_speaker = 'Gerdi Staiblin'
+            mnstr = 'Ländlicher Raum'
         elif 'Staatsministerium' in new_speaker:
-            new_speaker = 'Dr. Palmer'           
+            new_speaker = 'Dr. Christoph Palmer'
+            mnstr = 'Staatsministerium'
 
 
+    if wp==13:
+        if 'Wissenschaft, Forschung und Kunst' in new_speaker:
+            new_speaker = 'Dr. Peter Frankenberg'
+            mnstr = 'Wissenschaft, Forschung und Kunst'
+        elif 'Ländlichen Raum' in new_speaker:
+            if date <= '2005-04-26':
+                new_speaker = 'Willi Stächele'
+            else:
+                new_speaker = 'Pater Hauk'
+            mnstr = 'Ernährung und Ländlicher Raum'
+        elif 'Umwelt und Verkehr' in new_speaker:
+            if date <= '2004-07-14':
+                new_speaker = 'Ulrich Müller'
+            else:
+                new_speaker = 'Stefan Mappus'
+            mnstr = 'Umwelt und Verkehr'
+        elif 'Kultus, Jugend und Sport' in new_speaker:
+            if date <= '2005-10-05':
+                new_speaker = 'Annette Schavan'
+            else:
+                new_speaker = 'Helmut Rau'
+            mnstr = 'Kultus, Jugend und Sport'
+        elif 'europäische' in new_speaker:
+            if date <= '2004-10-25':
+                new_speaker = 'Dr. Christoph Palmer'
+            else:
+                new_speaker = 'Ulrich Müller'
+            mnstr = 'Staatsministerium und für europäische Angelegenheiten'
+        elif 'Bevollmächtigter' in new_speaker:
+            if date <= '2005-04-26':
+                new_speaker = 'Rudolf Köberle'
+            else:
+                new_speaker = 'Dr. Wolfgang Reinhart'
+            mnstr = 'Bevollmächtigter des Landes beim Bund'
+        elif 'Arbeit und Soziales' in new_speaker:
+            if date < '2006-02-01':
+                new_speaker = 'Andreas Renner'
+            else:
+                new_speaker = 'Dr. Monika Stolz'
+            mnstr = 'Arbeit und Soziales'
+    
+    if wp==14:
+        if 'Wissenschaft, Forschung und Kunst' in new_speaker:
+            new_speaker = 'Dr. Peter Frankenberg'
+            mnstr = 'Wissenschaft, Forschung und Kunst'
+        elif 'Ländlichen Raum' in new_speaker:
+            new_speaker = 'Peter Hauk'
+            mnstr = 'Ernährung und Ländlicher Raum'
+        elif 'Arbeit und Soziales' in new_speaker:
+            new_speaker = 'Dr. Monika Stolz'
+            mnstr = 'Arbeit und Soziales'
+        elif 'Kultus, Jugend und Sport' in new_speaker:
+            new_speaker = 'Helmut Rau'
+            mnstr = 'Kultus, Jugend und Sport'
+        elif 'Staatsministeriums' in new_speaker:
+            if date <= '2008-06-03':
+                new_speaker = 'Willi Stächele'
+            else:
+                new_speaker = 'Dr. Wolfgang Reinhart'
+            mnstr = 'Staatsministerium und für europäische Angelegenheiten'
+        elif 'Bevollmächtigter' in new_speaker:
+            new_speaker = 'Dr. Wolfgang Reinhart'
+            mnstr = 'Bevollmächtigter des Landes beim Bund'
+
+                
     if wp==15:
         if 'Finanzen und Wirtschaft' in new_speaker:
             new_speaker = 'Nils Schmid'
@@ -114,7 +184,96 @@ def cleans_executive_speaker_bw(new_speaker, wp, date):
             new_speaker = 'Guido Wolf'
         elif 'Verkehr' in new_speaker:
             new_speaker = 'Winfried Hermann'
-    return(new_speaker)
+    return(new_speaker, mnstr)
+
+def ministerium_secretary(new_speaker, mnstr, wp, date):
+    if wp == 12:
+        if 'Sieber' in new_speaker:
+            mnstr = 'Wissenschaft, Forschung und Kunst'
+        elif 'Mappus' in new_speaker: 
+            mnstr = 'Umwelt und Verkehr'
+        elif 'Köberle' in new_speaker:
+            mnstr = 'Kultus, Jugend und Sport'
+        elif 'Dr. Mehrländer' in new_speaker:
+            mnstr = 'Wirtschaftsministerium'
+        elif 'Johanna Lichy' in new_speaker:
+            mnstr = 'Sozialministerium'
+        elif 'Rückert' in new_speaker:
+            mnstr = 'Finanzministerium'
+        elif 'Stächele' in new_speaker:
+            mnstr = 'Vertretung des Landes beim Bund'
+        elif 'Dr. Beyreuther' in new_speaker:
+            mnstr = 'Lebenswissenschaften'
+            
+    elif wp == 13:
+        if 'Sieber' in new_speaker:
+            mnstr = 'Wissenschaft, Forschung und Kunst'
+        elif 'Dr. Beyreuther' in new_speaker:
+            mnstr = 'Lebenswissenschaften'
+        elif 'Dr. Mehrländer' in new_speaker:
+            mnstr = 'Wirtschaftsministerium'
+        elif 'Rau' in new_speaker:
+            mnstr = 'Kultus, Jugend und Sport'
+        elif 'Wacker' in new_speaker:
+            mnstr = 'Kultus, Jugend und Sport'
+        elif 'Dr. Monika Stolz' in new_speaker:
+            mnstr = 'Kultus, Jugend und Sport'
+        elif 'Rech' in new_speaker:
+            mnstr = 'Innenministerium'
+        elif 'Hillebrand' in new_speaker:
+            mnstr = 'Umwelt und Verkehr'
+        elif 'Mappus' in new_speaker:
+            mnstr = 'Umwelt und Verkehr'            
+        elif 'Friedlinde Gurr-Hirsch' in new_speaker:
+            mnstr = 'Ernährung und Ländlicher Raum'
+        elif 'Johanna Lichy' in new_speaker:
+            mnstr = 'Sozialministerium'
+        elif 'Rückert' in new_speaker:
+            mnstr = 'Finanzministerium'            
+        elif 'Dr. Reinhart' in new_speaker:
+            mnstr = 'Finanzministerium'
+        elif 'Köberle' in new_speaker:
+            mnstr = 'Bevollmächtigter des Landes beim Bund'
+            
+    elif wp == 14:
+        if 'Richard Drautz' in new_speaker:
+            mnstr = 'Wirtschaftsministerium'
+        elif 'Rudolf Köberle' in new_speaker:
+            mnstr = 'Innenministerium'
+        elif 'Dieter Hillebrand' in new_speaker:
+            mnstr = 'Arbeit und Soziales'
+        elif 'Wacker' in new_speaker:
+            mnstr = 'Kultus, Jugend und Sport'
+        elif 'Gundolf Fleischer' in new_speaker:
+            mnstr = 'Finanzministerium'
+        elif 'Dr. Dietrich Birk' in new_speaker:
+            mnstr = 'Wissenschaft, Forschung und Kunst'
+        elif 'Friedlinde Gurr-Hirsch' in new_speaker:
+            mnstr = 'Ernährung und Ländlicher Raum'        
+    return mnstr
+            
+            
+def replace_unrecognized_chars_bw(line):
+    line = (
+        line.replace('(cid:252)', 'ü')
+        .replace('(cid:246)', 'ö')
+        .replace('(cid:228)', 'ä')
+        .replace('(cid:224)', 'à')
+        .replace('(cid:223)', 'ß')
+        .replace('(cid:220)', 'Ü')
+        .replace('(cid:214)', 'Ö')
+        .replace('(cid:160)', ' ')
+        .replace('(cid:150)', '-')
+        .replace('(cid:147)', '"')      
+        .replace('(cid:146)', "'")
+        .replace('(cid:145)', "'")
+        .replace('(cid:132)', '"')
+        .replace('(cid:130)', "'")
+        .replace('\xa0', ' ')
+        .replace('\xad', '-')
+        )
+    return line
+       
 
 def cleans_speaker_hh(new_speaker):
     """
@@ -139,3 +298,14 @@ def cleans_speaker_hh(new_speaker):
 
     new_speaker = re.sub(r'\s+DIE(?:\s+LIN-)?', '', new_speaker)
     return new_speaker
+
+
+    
+
+
+
+
+
+
+
+
