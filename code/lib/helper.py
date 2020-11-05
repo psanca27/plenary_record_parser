@@ -252,7 +252,24 @@ def ministerium_secretary(new_speaker, mnstr, wp, date):
             mnstr = 'Ernährung und Ländlicher Raum'        
     return mnstr
             
-            
+def deal_with_green_party(line):
+    line = (
+        line.replace('Bündnis 90/Die Grünen', 'GRÜNE')
+        .replace('Bündnis90/DieGrünen', 'GRÜNE')
+        .replace('Bündnis90 /DieGrünen', 'GRÜNE')
+        .replace('Bündnis90/ DieGrünen', 'GRÜNE')
+        .replace('Bündnis90/Die Grünen', 'GRÜNE')
+        .replace('Bündnis 90/DieGrünen', 'GRÜNE')
+        .replace('Bündnis90/DieGrünen', 'GRÜNE')
+        .replace('Bündnis 90/ Die Grünen', 'GRÜNE')
+        .replace('Büdnis 90/Die Grünen', 'GRÜNE')
+        .replace('Bündis 90/ Die Grünen', 'GRÜNE')
+        .replace('Bündnis 90/Die Grü-','GRÜNE:')
+        .replace('nen:', '')
+        )
+    return line
+        
+    
 def replace_unrecognized_chars_bw(line):
     line = (
         line.replace('(cid:252)', 'ü')

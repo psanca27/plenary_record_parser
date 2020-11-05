@@ -127,6 +127,7 @@ for filename in sorted(files):
 
     for line, has_more in helper.lookahead(lines):
         line = helper.replace_unrecognized_chars_bw(line)
+        line = helper.deal_with_green_party(line)
         # if '<identation>herer Finanzminister aber ganz anders gesehen mit' in line:
         #     import pdb; pdb.set_trace()
         if not date_captured and DATE_CAPTURE.search(line):
