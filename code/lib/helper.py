@@ -263,7 +263,20 @@ def deal_with_green_party(line):
         .replace('Bündnis90/DieGrünen', 'GRÜNE')
         .replace('Bündnis 90/ Die Grünen', 'GRÜNE')
         .replace('Büdnis 90/Die Grünen', 'GRÜNE')
-        .replace('Bündis 90/ Die Grünen', 'GRÜNE')
+        .replace('Bündis 90/die Grünen', 'GRÜNE')
+        .replace('Bündis 90/ die Grünen', 'GRÜNE')
+        .replace('Bündis 90 / die Grünen', 'GRÜNE')
+        .replace('Bündis90/ die Grünen', 'GRÜNE')
+        .replace('Bündis90/ dieGrünen', 'GRÜNE')
+        .replace('Bündis90/dieGrünen', 'GRÜNE')
+        .replace('Bündis 90/dieGrünen', 'GRÜNE')
+        .replace('Bündnis 90/Die','GRÜNE:')
+        .replace('Bündnis 90/ Die','GRÜNE:')
+        .replace('Bündnis 90 / Die','GRÜNE:')
+        .replace('Bündnis 90/die','GRÜNE:')
+        .replace('Bündnis 90/ die','GRÜNE:')
+        .replace('Bündnis 90 / die','GRÜNE:')
+        .replace('Bündnis90 / die','GRÜNE:')
         .replace('Bündnis 90/Die Grü-','GRÜNE:')
         .replace('nen:', '')
         )
@@ -319,10 +332,158 @@ def cleans_speaker_hh(new_speaker):
 
     
 
+def ministerium_senators_hb(new_speaker, mnstr, wp, date):
+    if wp == 15:
+        if 'Adolf' in new_speaker:
+            mnstr = 'Arbeit, Frauen, Gesundheit, Jugend und Soziales'
+        elif 'Röpke' in new_speaker:
+            mnstr = 'Arbeit, Frauen, Gesundheit, Jugend und Soziales'
+        elif 'Perschau' in new_speaker: 
+            mnstr = 'Finanzen'
+        elif 'Hattig' in new_speaker:
+            mnstr = 'Wirtschaft und Häfen'
+        elif 'Dr. Schulte' in new_speaker:
+            mnstr = 'Inneres, Kultur und Sport'
+        elif 'Wischer' in new_speaker:
+            mnstr = 'Bau und Umwelt'
+        elif 'Dr. Scherf' in new_speaker:
+            mnstr = 'Bürgermeister'
+        elif 'Lemke' in new_speaker:
+            mnstr = 'Bildung und Wissenschaft'
+        elif 'Dr. Böse' in new_speaker:
+            mnstr = 'Inneres, Kultur und Sport'
+            
+    elif wp == 16:
+        if date < '2005-11-07':
+            if 'Dr. Scherf' in new_speaker:
+                mnstr = 'Bürgermeister'
+            elif 'Röpke' in new_speaker:
+                mnstr = 'Arbeit, Frauen, Gesundheit, Jugend und Soziales'
+            elif 'Perschau' in new_speaker: 
+                mnstr = 'Kultur'       
+            elif 'Dr. Gloystein' in new_speaker:
+                mnstr = 'Wirtschaft und Häfen'
+            elif 'Kastendiek' in new_speaker:
+                mnstr = 'Wirtschaft und Häfen' 
+            elif 'Röwekamp' in new_speaker:
+                mnstr = 'Inneres und Sport'
+            elif 'Dr. Nußbaum' in new_speaker:
+                mnstr = 'Finanzen'            
+            elif 'Eckhoff' in new_speaker:
+                mnstr = 'Bau, Umwelt und Verkehr'
+            elif 'Lemke' in new_speaker:
+                mnstr = 'Bildung und Wissenschaft'
+        else: 
+            if 'Böhrnsen' in new_speaker:
+                mnstr = 'Bürgermeister'
+            elif 'Röpke' in new_speaker:
+                mnstr = 'Arbeit, Frauen, Gesundheit, Jugend und Soziales'
+            elif 'Rosenköter' in new_speaker:
+                mnstr = 'Arbeit, Frauen, Gesundheit, Jugend und Soziales'
+            elif 'Rosenkötter' in new_speaker:
+                mnstr = 'Arbeit, Frauen, Gesundheit, Jugend und Soziales'  
+            elif 'Kastendiek' in new_speaker:
+                mnstr = 'Wirtschaft und Häfen' 
+            elif 'Röwekamp' in new_speaker:
+                mnstr = 'Inneres, Kultur und Sport'
+            elif 'Dr. Nussbaum' in new_speaker:
+                mnstr = 'Finanzen'            
+            elif 'Eckhoff' in new_speaker:
+                mnstr = 'Bau, Umwelt und Verkehr'
+            elif 'Neumeyer' in new_speaker:
+                mnstr = 'Bau, Umwelt und Verkehr'
+            elif 'Lemke' in new_speaker:
+                mnstr = 'Bildung und Wissenschaft'
+
+    elif wp == 17:
+        if 'Böhrnsen' in new_speaker:
+            mnstr = 'Bürgermeister'
+        elif 'Röpke' in new_speaker:
+            mnstr = 'Arbeit, Frauen, Gesundheit, Jugend und Soziales'
+        elif 'Rosenkötter' in new_speaker:
+            mnstr = 'Arbeit, Frauen, Gesundheit, Jugend und Soziales'  
+        elif 'Nagel' in new_speaker:
+            mnstr = 'Wirtschaft und Häfen' 
+        elif 'Lemke' in new_speaker:
+            mnstr = 'Inneres und Sport'
+        elif 'Mäurer' in new_speaker:
+            mnstr = 'Inneres und Sport'
+        elif 'Linnert' in new_speaker:
+            mnstr = 'Finanzen'            
+        elif 'Dr. Loske' in new_speaker:
+            mnstr = 'Bau, Umwelt, Verkehr und Europa'
+        elif 'Jürgens-Pieper' in new_speaker:
+            mnstr = 'Bildung und Wissenschaft'
+            
+    return mnstr
 
 
-
-
-
-
-
+def ministerium_secretaries_hb(new_speaker, mnstr, wp, date):
+    if 'Knigge' in new_speaker:
+        mnstr = 'Arbeit, Frauen, Gesundheit, Jugend und Soziales'
+    elif 'Hoppensack' in new_speaker:
+        mnstr = 'Arbeit, Frauen, Gesundheit, Jugend und Soziales'
+    elif 'Weihrauch' in new_speaker:
+        mnstr = 'Arbeit, Frauen, Gesundheit, Jugend und Soziales'
+    elif 'Schuster' in new_speaker:
+        mnstr = 'Arbeit, Frauen, Gesundheit, Jugend und Soziales'
+    elif 'Schulte-Sasse' in new_speaker:
+        mnstr = 'Arbeit, Frauen, Gesundheit, Jugend und Soziales'
+    elif 'Dr. Dannemann' in new_speaker: 
+        mnstr = 'Finanzen'
+    elif 'Metz' in new_speaker: 
+        mnstr = 'Finanzen'
+    elif 'Lühr' in new_speaker: 
+        mnstr = 'Finanzen'
+    elif 'Mützelburg' in new_speaker: 
+        mnstr = 'Finanzen'
+    elif 'Winther' in new_speaker:
+        mnstr = 'Wirtschaft und Häfen'
+    elif 'Dr. Färber' in new_speaker:
+        mnstr = 'Wirtschaft und Häfen'
+    elif 'Heseler' in new_speaker:
+        mnstr = 'Wirtschaft und Häfen'
+    elif 'Goehler' in new_speaker:
+        mnstr = 'Inneres'
+    elif 'Wischer' in new_speaker:
+        mnstr = 'Bau und Umwelt'
+    elif 'Logemann' in new_speaker:
+        mnstr = 'Bau und Umwelt'
+    elif 'Kramer' in new_speaker:
+        mnstr = 'Bau, Umwelt und Verkehr'
+    elif 'Dr. Scherf' in new_speaker:
+        mnstr = 'Bürgermeister'
+    elif 'Köttgen' in new_speaker:
+        mnstr = 'Bildung und Wissenschaft'
+    elif 'Othmer' in new_speaker:
+        mnstr = 'Bildung und Wissenschaft'
+    elif 'Wewer' in new_speaker:
+        mnstr = 'Inneres und Sport'
+    elif 'Buse' in new_speaker:
+        mnstr = 'Inneres und Sport'
+    elif 'Motschmann' in new_speaker:
+        mnstr = 'Inneres, Kultur und Sport'
+    elif 'Böse' in new_speaker:
+        mnstr = 'Inneres, Kultur und Sport'
+    elif 'vom Bruch' in new_speaker:
+        mnstr = 'Inneres, Kultur und Sport'
+    elif 'Mäurer' in new_speaker:
+        mnstr = 'Justiz und Verfassung'
+    elif 'Hoffmann' in new_speaker:
+        mnstr = 'Senatskanzlei'
+    elif 'Schulte' in new_speaker:
+        mnstr = 'Senatskanzlei'
+    elif 'Bettermann' in new_speaker:
+        mnstr = 'Bevollmächtigter beim Bund'   
+    elif 'Kießler' in new_speaker:
+        mnstr = 'Bevollmächtigter beim Bund'  
+    elif 'Golasowski' in new_speaker:
+        mnstr = 'Bau, Umwelt, Verkehr und Europa'
+    elif 'Emigholz' in new_speaker:
+        mnstr = 'Kultur'
+    elif 'Ehmigholz' in new_speaker:
+        mnstr = 'Kultur'
+    elif 'Stauch' in new_speaker:
+        mnstr = 'Justiz'
+            
+    return mnstr
