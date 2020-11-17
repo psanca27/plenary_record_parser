@@ -12,7 +12,7 @@ def converts_pdf_to_text(state, word_margin, char_margin, line_margin):
     files = [os.path.join(dp, f) for dp, dn, fn in os.walk(
         os.path.expanduser(DATA_PATH)) for f in fn if f.endswith('.pdf')]
 
-    for filename in tqdm(sorted(files[:10])):
+    for filename in tqdm(sorted(files)):
         os.system("python lib/pdf2txt.py -o{0} {1} -W {2} -M {3} -L {4}".format(
             filename.replace('.pdf', '.xml'), filename, word_margin, char_margin, line_margin))
 

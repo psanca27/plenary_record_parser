@@ -220,7 +220,7 @@ def iteratesFiles(state):
     files = [os.path.join(dp, f) for dp, dn, fn in os.walk(os.path.expanduser(DATA_PATH)) for f in fn if f.endswith(".xml")]
     with open(os.path.join(DATA_PATH, "params_" + state + ".json"), encoding="utf-8") as fp:
         params = json.loads(fp.read())
-    for filename in sorted(files[163:]):
+    for filename in sorted(files):
         print(filename)
         result = parseXML(filename, params=params, state=state)
         # no_digits = len(filename.split('_')[3].split('.')[0])
