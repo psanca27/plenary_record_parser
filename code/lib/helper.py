@@ -487,3 +487,22 @@ def ministerium_secretaries_hb(new_speaker, mnstr, wp, date):
         mnstr = 'Justiz'
             
     return mnstr
+
+
+def ministerium_st(ministerium):
+    if 'Arbeit' in ministerium:
+        ministerium = 'Arbeit, Frauen, Gesundheit und Soziales'
+    elif 'Raumordnung' in ministerium:
+        ministerium = 'Raumordnung, Landwirtschaft und Umwelt'
+    elif 'Wirtschaft' in ministerium:
+        ministerium = 'Wirtschaft und Technologie'
+    elif 'Wohnungswesen' in ministerium:
+        ministerium = 'Wohnungswesen, Städtebau und Verkehr'
+    elif 'Landwirtschaft' in ministerium:
+        ministerium = 'Landwirtschaft und Umwelt'
+    elif 'Landentwicklung' in ministerium:
+        ministerium = 'Landentwicklung und Verkehr'
+    elif 'Gesundheit' in ministerium:
+        ministerium = 'Gesundheit und Soziales'        
+            
+    return ministerium
