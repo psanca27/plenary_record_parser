@@ -12,12 +12,13 @@ from datetime import datetime
 
 log = logging.getLogger(__name__)
 
-os.chdir('/Volumes/Datahouse/Users/Stipe/Documents/Studium/Master VWL/Masterarbeit/plenarprotokolle/code')
+#os.chdir('/Volumes/Datahouse/Users/Stipe/Documents/Studium/Master VWL/Masterarbeit/plenarprotokolle/code')
 # os.chdir('/home/felix/privat/plenarprotokolle/code')
+os.chdir('../code')
 
 from lib import helper
 
-locale.setlocale(locale.LC_TIME, "de_DE.utf-8")
+locale.setlocale(locale.LC_TIME, "de_DE")
 
 STATE = 'ST'
 
@@ -41,8 +42,8 @@ DATA_PATH = os.environ.get('DATA_PATH', '../data/' + STATE)
 
 
 # wp7
-BEGIN_STRING = r'^(?:<interjection_begin>)?(?:Beginn):?\s+[0-9]{1,2}[.:]?(?:[0-9]{1,2})?\s+Uhr'
-END_STRING = r'^(?:<interjection_begin>)?(?:Schluss der Sitzung|Schluss der Sitzung)[:.](\s+)?(?:[0-9]{2}|[0-9]{1})(?:.[0-9]{2})?\s+Uhr'
+BEGIN_STRING = r'^(?:<interjection_begin>)?(?:Beginn):?\s?[0-9]{1,2}[.:]?(?:[0-9]{1,2})?\s+Uhr'
+END_STRING = r'^(?:<interjection_begin>)?(?:Schluss der Sitzung|Schluss der Sitzung|Ende der Sitzung)[:.](\s+)?(?:[0-9]{2}|[0-9]{1})(?:.[0-9]{2})?\s+Uhr'
 CHAIR_STRING = r'^<poi_begin>(Präsident(?:in)?|Vizepräsident(?:in)?|Alters?präsident(?:in)?)\s+(?:Frau|Herrn|Herr)?(?:\s+Dr\.)?(?:\s+)?(.+)'
 SPEAKER_STRING = r'^<poi_begin>(?:Herr|Frau)?(?:\s+)?(.*?)\s+(?:\(.*?\)\s+)?\((.*?)\):'
 EXECUTIVE_STRING = r'^<poi_begin>([^\(].+?)\s\((Ministerin.+|Ministerpräsident(?:in)?|Minister.+|Staatsministerin.+|Staatsminister.+)\)?'
@@ -55,8 +56,9 @@ BEGIN_MARK = re.compile(BEGIN_STRING)
 END_MARK = re.compile(END_STRING)
 CHAIR_MARK = re.compile(CHAIR_STRING)
 SPEAKER_MARK = re.compile(SPEAKER_STRING)
-EXECUTIVE_MARK_WP7 = re.compile(EXECUTIVE_STRING)
-EXECUTIVE_MARK_WP6 = re.compile(r'^<poi_begin>(?:Herr|Frau)(?:\s+Prof\.(?:\s+Dr\.)?)?(.*?),\s(Kultusminister(?:in)?|[Mm]inister(?:in)?\s+(?:für|der|des)|Ministerpräsident(?:in)?|Staatsminister(?:in)?)')
+#EXECUTIVE_MARK_WP7 = re.compile(EXECUTIVE_STRING)
+#EXECUTIVE_MARK_WP6 = re.compile(r'^<poi_begin>(?:Herr|Frau)(?:\s+Prof\.(?:\s+Dr\.)?)?(.*?),\s(Kultusminister(?:in)?|[Mm]inister(?:in)?\s+(?:für|der|des)|Ministerpräsident(?:in)?|Staatsminister(?:in)?)')
+EXECUTIVE_MARK = re.compile(r'^<poi_begin>(?:Herr|Frau)(?:\s+Prof\.(?:\s+Dr\.)?)?(.*?),\s(Kultusminister(?:in)?|[Mm]inister(?:in)?\s+(?:für|der|des)\s+[^:]*|Ministerpräsident(?:in)?|Staatsminister(?:in)?)')
 OFFICIALS_MARK = re.compile(OFFICIALS_STRING)
 PERSON_OF_TRUST_MARK = re.compile(r'^<poi_begin>(.+?)(?:\s+\((?:Vertrauensperson\s+der\s+Volks)|,\s+Vertrauensperson)')
 RAPPPORTEUR_MARK = re.compile(RAPPORTEUR_STRING)
@@ -69,29 +71,29 @@ POI_ONE_LINER = re.compile(r'(.+?)?<poi_end>(?:.+)?')
 
 files = sorted([os.path.join(dp, f) for dp, dn, fn in os.walk(os.path.expanduser(DATA_PATH)) for f in fn if f.endswith("xml.txt")])
 
-db = os.environ.get('DATABASE_URI', 'sqlite:///../data/data.sqlite')
-eng = dataset.connect(db)
-table = eng['de_landesparlamente_plpr']
+#db = os.environ.get('DATABASE_URI', 'sqlite:///../data/data.sqlite')
+#eng = dataset.connect(db)
+#table = eng['de_landesparlamente_plpr']
 
 ls_speeches = []
 ls_interjection_length = []
 ls_text_length = []
 ls_interjection_length = []
 
-for filename in files:
+for filename in files[-3:]:
 
     # extracts wp, session no. and if possible date of plenary session
-    wp, session = int(filename[14:15]), int(filename[16:19])
+    wp, session = int(filename[11:12]), int(filename[12:15])
     date = None
 
-    if wp==6:
-      EXECUTIVE_MARK = EXECUTIVE_MARK_WP6
-    elif wp==7:
-      EXECUTIVE_MARK = EXECUTIVE_MARK_WP7
+    #if wp==6:
+      #EXECUTIVE_MARK = EXECUTIVE_MARK_WP6
+    #elif wp==7:
+      #EXECUTIVE_MARK = EXECUTIVE_MARK_WP7
 
     print(wp, session)
 
-    table.delete(wp=wp, session=session, state=STATE)
+    #table.delete(wp=wp, session=session, state=STATE)
 
     # if wp==18:
     #     abg = abg_wp18
@@ -103,7 +105,7 @@ for filename in files:
 
     print("Loading transcript: %s/%.3d, from %s" % (wp, session, filename))
 
-    lines = text.split('\n')
+    lines = text.split('\r\n')
 
     # trigger to skip lines until date is captured
     date_captured = False
@@ -142,6 +144,7 @@ for filename in files:
     servant = False
     party = None
     role = None
+    ministerium = None
 
     # counts to keep order
     seq = 0
@@ -200,12 +203,13 @@ for filename in files:
         if '<poi_begin>' in line:
             if CHAIR_MARK.match(line):
                 s = CHAIR_MARK.match(line)
-                new_speaker = re.sub(' +', ' ', s.group(2))
+                new_speaker = re.sub(' +', ' ', s.group(0))
                 president = True
                 executive = False
                 servant = False
                 party = None
                 role = 'chair'
+                ministerium = None
                 poi_prev = False
             elif EXECUTIVE_MARK.match(line):
                 s = EXECUTIVE_MARK.match(line)
@@ -215,6 +219,8 @@ for filename in files:
                 president = False
                 executive = True
                 servant = False
+                ministerium = re.sub('[Mm]inister(?:in)?\s+(?:für|der|des)\s+', '', s.group(2)).strip()
+                ministerium = helper.ministerium_st(ministerium)
                 poi_prev = False
             elif OFFICIALS_MARK.match(line):
                 s = OFFICIALS_MARK.match(line)
@@ -224,6 +230,7 @@ for filename in files:
                 executive = False
                 servant = True
                 role = 'state secretary'
+                ministerium = None
                 poi_prev = False
             elif RAPPPORTEUR_MARK.match(line):
                 s = RAPPPORTEUR_MARK.match(line)
@@ -234,6 +241,7 @@ for filename in files:
                 party = None
                 role = 'rapporteur of comittee'
                 poi_prev = False
+                ministerium = None
             elif SPEAKER_MARK.match(line):
                 s = SPEAKER_MARK.match(line)
                 new_speaker = re.sub(' +', ' ', s.group(1)).rstrip(')').rstrip('*')
@@ -243,6 +251,7 @@ for filename in files:
                 party = s.group(2)
                 role = 'mp'
                 poi_prev = False
+                ministerium = None
             elif PERSON_OF_TRUST_MARK.match(line):
                 s = PERSON_OF_TRUST_MARK.match(line)
                 new_speaker = re.sub(' +', ' ', s.group(1)).rstrip(')').rstrip('*')
@@ -251,6 +260,7 @@ for filename in files:
                 servant = False
                 party = None
                 role = 'person of trust of popular petition'
+                ministerium = None
             else:
                 if POI_ONE_LINER.match(line):
                     issue = POI_ONE_LINER.match(line).group(1)
@@ -297,6 +307,7 @@ for filename in files:
                                            'wp': wp,
                                            'session': session,
                                            'president': current_president,
+                                           'ministerium': [current_ministerium],
                                            'role': [current_role],
                                            'state': [STATE],
                                            'interjection': interjection,
@@ -313,6 +324,7 @@ for filename in files:
                                        'wp': wp,
                                        'session': session,
                                        'president': current_president,
+                                       'ministerium': current_ministerium,
                                        'role': current_role,
                                        'state': STATE,
                                        'interjection': interjection,
@@ -320,7 +332,7 @@ for filename in files:
                                        'date': date,
                                        'issue': issue}
 
-                    table.insert(speech_dict)
+                    #table.insert(speech_dict)
                 # stops iterating over lines, if end of session is reached e.g. Schluss: 17:16 Uhr
                 # to know order of speech within a given plenary session
                 seq += 1
@@ -367,6 +379,7 @@ for filename in files:
                                            'wp': wp,
                                            'session': session,
                                            'president': current_president,
+                                           'ministerium': [current_ministerium],
                                            'role': [current_role],
                                            'state': [STATE],
                                            'interjection': interjection,
@@ -383,6 +396,7 @@ for filename in files:
                                        'wp': wp,
                                        'session': session,
                                        'president': current_president,
+                                       'ministerium': current_ministerium,
                                        'role': current_role,
                                        'state': STATE,
                                        'interjection': interjection,
@@ -390,7 +404,7 @@ for filename in files:
                                        'date': date,
                                        'issue': issue}
 
-                    table.insert(speech_dict)
+                    #table.insert(speech_dict)
 
             #
             sub += 1
@@ -428,6 +442,7 @@ for filename in files:
                                            'wp': wp,
                                            'session': session,
                                            'president': current_president,
+                                           'ministerium': [current_ministerium],
                                            'role': [current_role],
                                            'state': [STATE],
                                            'interjection': [interjection],
@@ -444,6 +459,7 @@ for filename in files:
                                        'wp': wp,
                                        'session': session,
                                        'president': current_president,
+                                       'ministerium': current_ministerium,
                                        'role': current_role,
                                        'state': STATE,
                                        'interjection': interjection,
@@ -451,7 +467,7 @@ for filename in files:
                                        'date': date,
                                        'issue': issue}
 
-                        table.insert(speech_dict)
+                        #table.insert(speech_dict)
                     sub += 1
                     interjection_length += 1
                     ls_interjection_length.append([interjection_length, wp, session, seq, sub, current_speaker, interjection_text])
@@ -498,6 +514,7 @@ for filename in files:
             current_executive = executive
             current_servant = servant
             current_role = role
+            current_ministerium = ministerium
             endend_with_interjection = False
             interjection_complete = None
         if not has_more and in_session:
@@ -508,7 +525,7 @@ for filename in files:
     ls_speeches.append(pd_session_speeches)
 
 pd_speeches = pd.concat(ls_speeches).reset_index()
-pd_speeches.to_csv(os.path.join(DATA_PATH, STATE + '_test.csv'))
+#pd_speeches.to_csv(os.path.join(DATA_PATH, STATE + '_test.csv'))
 
 # checks
 # interjection length
