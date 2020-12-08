@@ -95,9 +95,13 @@ def parseXML(xml_in, params, state):
 
         # if page_id=='6':
         #     import pdb; pdb.set_trace()
-        interjection_left = params['identation_bound_left_2']-3
-        interjection_right = params['identation_bound_right_2']-3
-
+        if int(page_id) %2 == 0:
+            interjection_left = params['identation_bound_left_2']-3
+            interjection_right = params['identation_bound_right_2']-3
+        else:
+            interjection_left = params['identation_bound_left_odd_pages']-3
+            interjection_right = params['identation_bound_right_odd_pages']-3
+            
         for textbox in textboxes:
             # get the boundaries of the textline
             #import pdb; pdb.set_trace()
@@ -175,7 +179,7 @@ def parseXML(xml_in, params, state):
             #    textbox['left'] = 30
             #    textbox['top'] = textbox['top']-1000
             if textbox['left'] > interjection_left and textbox['left'] < params['identation_bound_right_1'] - 3:
-                textbox['text'] = '<interjection_begin>' + textbox['text'] + '<interjection_end>'
+                textbox['text'] = '<interjection_begin>'+ textbox['text'] + '<interjection_end>'
             elif textbox['left'] > interjection_right:
                 textbox['text'] = '<interjection_begin>' + textbox['text'] + '<interjection_end>'
 
@@ -237,7 +241,7 @@ def iteratesFiles(state):
     for filename in sorted(files):
         print(filename)
         result = parseXML(filename, params=params, state=state)
-        no_digits = len(filename.split('_')[3].split('.')[0])
+        #no_digits = len(filename.split('_')[3].split('.')[0])
         output_name = filename.replace('.xml', '_xml.txt')
         with open(output_name, "w", encoding="utf-8") as fp:
             fp.writelines(result)
