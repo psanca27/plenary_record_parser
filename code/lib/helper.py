@@ -506,3 +506,21 @@ def ministerium_st(ministerium):
         ministerium = 'Gesundheit und Soziales'        
             
     return ministerium
+
+def adjust_names_mv(new_speaker):
+    if new_speaker == 'R e i n h a r d t T h o m a s':
+        new_speaker = 'Reinhardt Thomas'
+    elif new_speaker == 'Vizepräsidentin Renate H o l z n a g e l':
+        new_speaker = 'Vizepräsidentin Renate Holznagel'
+    elif new_speaker == 'Vizepräsidentin Rente Holznagel':
+        new_speaker = 'Vizepräsidentin Renate Holznagel'
+    elif new_speaker == 'Präsidentin Sylvia B r e t s c h n e i d e r':
+        new_speaker = 'Präsidentin Sylvia Bretschneider'
+    elif new_speaker == 'J ö r g V i e r k a n t':
+        new_speaker =  'Jörg Vierkant'
+    elif new_speaker ==  'Lorenz Cafﬁ er':
+        new_speaker =  'Lorenz Cafﬁer'
+    elif new_speaker == 'Gabriele Mû‰Èan':
+        new_speaker = 'Gabriele Mestan'
+    
+    return new_speaker
