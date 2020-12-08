@@ -12,7 +12,9 @@ from datetime import datetime
 
 log = logging.getLogger(__name__)
 
-os.chdir('/Volumes/Datahouse/Users/Stipe/Documents/Studium/Master VWL/Masterarbeit/plenarprotokolle/code')
+#os.chdir('/Volumes/Datahouse/Users/Stipe/Documents/Studium/Master VWL/Masterarbeit/plenarprotokolle/code')
+os.chdir('../code')
+
 
 from lib import helper
 DATA_PATH = os.environ.get('DATA_PATH', '../data/MV')
@@ -38,7 +40,7 @@ long_lastnames = ['Al-Sabty']
 BEGIN_STRING = r'^(?:(?:<interjection_begin>)?<poi_begin>)?Beginn:?\s+(?:[0-9]{1,2}[.:][0-9]{1,2}|[0-9]{1,2})\s+Uhr'
 END_STRING = r'^(?:<interjection_begin>)?(?:<poi_begin>)?Schluss:?\s+(?:[0-9]{1,2}[.:][0-9]{1,2}|[0-9]{1,2})\s+Uhr'
 CHAIR_STRING = r'^(Alterspräsident(?:in)?|Präsident(?:in)?|Erste(?:r)?\s+Vizepräsident(?:in)?|Vizepräsident(?:in)?)(?:<poi_end>)?\s+(.+?)(?:\s+\((?:fortfahrend|unterbrechend)\))?:?<poi_end>'
-SPEAKER_STRING = r'^(.+)(?:<poi_end>,|,<poi_end>)\s+(?:<poi_end>)?(CDU|SPD|BÜNDNIS\s+90/DIE\s+GRÜNEN|DIE\s+LINKE|NPD|fraktionslos|(?:Freie\s+Wähler/)?BMV|AfD)'
+SPEAKER_STRING = r'^(.+)(?:<poi_end>,|,<poi_end>)\s+(?:<poi_end>)?(CDU|SPD|PDS|FDP|BÜNDNIS\s+90/DIE\s+GRÜNEN|DIE\s+LINKE|NPD|fraktionslos|(?:Freie\s+Wähler/)?BMV|AfD)'
 EXECUTIVE_STRING = r'^(Ministerpräsident(?:in)?|Minister(?:in)?)\s+(.+?)<poi_end>'
 OFFICIALS_STRING = r'^(Staatssekretär(?:in)?)\s+(.+)(?:<poi_end>|:)'
 
@@ -67,20 +69,20 @@ STATE = 'MV'
 
 files = [os.path.join(dp, f) for dp, dn, fn in os.walk(os.path.expanduser(DATA_PATH)) for f in fn if f.endswith('xml.txt')]
 
-db = os.environ.get('DATABASE_URI', 'sqlite:///../data/data.sqlite')
-eng = dataset.connect(db)
-table = eng['de_landesparlamente_plpr']
+#db = os.environ.get('DATABASE_URI', 'sqlite:///../data/data.sqlite')
+#eng = dataset.connect(db)
+#table = eng['de_landesparlamente_plpr']
 
 ls_interjection_length = []
 ls_text_length = []
 ls_speeches = []
 
-table.delete(state=STATE)
+#table.delete(state=STATE)
 
 for filename in files:
 
     # extracts wp, session no. and if possible date of plenary session
-    wp, session, date = int(filename[17:19]), int(filename[20:24]), None
+    wp, session, date = int(filename[11]), int(filename[13:17]), None
     print(wp, session)
 
     if wp==18:
@@ -100,7 +102,7 @@ for filename in files:
 
     print("Loading transcript: %s/%.3d, from %s" % (wp, session, filename))
 
-    lines = text.split('\n')
+    lines = text.split('\r\n')
 
        # trigger to skip lines until date is captured
     date_captured = False
@@ -182,28 +184,31 @@ for filename in files:
             line = line.replace('<poi_begin>', '')
             if CHAIR_MARK.match(line):
                 s = CHAIR_MARK.match(line)
-                new_speaker = re.sub(' +', ' ', s.group(2)).replace(':', '').strip()
+                new_speaker = re.sub(' +', ' ', s.group(0)).replace(':', '').strip()
                 president = True
                 executive = False
                 servant = False
                 party = None
                 role = 'chair'
+                ministerium = None
             elif EXECUTIVE_MARK.match(line):
                 s = EXECUTIVE_MARK.match(line)
-                new_speaker = re.sub(' +', ' ', s.group(2))
+                new_speaker = re.sub(' +', ' ', s.group(0))
                 role = 'executive'
                 party = None
                 president = False
                 executive = True
                 servant = False
+                ministerium = None
             elif OFFICIALS_MARK.match(line):
                 s = OFFICIALS_MARK.match(line)
-                new_speaker = re.sub(' +', ' ', s.group(2))
+                new_speaker = re.sub(' +', ' ', s.group(0))
                 party = None
                 president = False
                 executive = False
                 servant = True
                 role = 'secretary'
+                ministerium = None
             elif SPEAKER_MARK.match(line):
                 s = SPEAKER_MARK.match(line)
                 new_speaker = re.sub(' +', ' ', s.group(1))
@@ -212,6 +217,7 @@ for filename in files:
                 servant = False
                 party = s.group(2)
                 role = 'mp'
+                ministerium = None
             elif any([e in line for e in long_lastnames]):
                 if 'Al-Sabty<poi_end>' in line:
                     new_speaker = 'Dr. Hikmat Al-Sabty'
@@ -220,6 +226,8 @@ for filename in files:
                     servant = False
                     party = 'DIE LINKE'
                     role = 'mp'
+                    ministerium = None
+
             elif OMBUDSMAN_MARK.match(line):
                 s = OMBUDSMAN_MARK.match(line)
                 new_speaker = re.sub(' +', ' ', s.group(1))
@@ -228,6 +236,7 @@ for filename in files:
                 servant = False
                 party = None
                 role = 'ombudsman'
+                ministerium = None
             elif FEDERAL_COMISSIONER_MARK.search(line):
                 s = FEDERAL_COMISSIONER_MARK.search(line)
                 new_speaker = s.group(1)
@@ -236,8 +245,10 @@ for filename in files:
                 servant = False
                 party = None
                 role = 'federal commissioner for the documents from the Stasi'
+                ministerium = None
                 if new_speaker == 'Jörn Mothes':
                     role == 'federal advisor in the council for the documents from the Stasi'
+                    ministerium = None
             elif CONSTITUTIONAL_COURT_MARK.search(line):
                 s = CONSTITUTIONAL_COURT_MARK.search(line)
                 new_speaker = s.group(1)
@@ -246,6 +257,7 @@ for filename in files:
                 servant = False
                 party = None
                 role = 'member of the federal constitutional court'
+                ministerium = None
             else:
                 if finished_poi:
                     finished_poi = False
@@ -267,10 +279,13 @@ for filename in files:
                                .replace('*', '')
                                .replace(')', '')
                                .replace(':', '')
+                               .replace('<interjection_begin>', '')
                                .strip()
                                )
                 new_speaker = re.sub(' +', ' ', new_speaker)
-
+        
+        new_speaker = helper.adjust_names_mv(new_speaker)
+        
         # saves speech, if new speaker is detected:
         if s is not None and current_speaker is not None:
             # ensures that new_speaker != current_speaker or matches end of session, document
@@ -295,6 +310,7 @@ for filename in files:
                                        'wp': wp,
                                        'session': session,
                                        'president': current_president,
+                                       'ministerium': [current_ministerium],
                                        'role': [current_role],
                                        'state': [STATE],
                                        'interjection': [interjection],
@@ -311,6 +327,7 @@ for filename in files:
                                        'wp': wp,
                                        'session': session,
                                        'president': current_president,
+                                       'ministerium': current_ministerium,
                                        'role': current_role,
                                        'state': STATE,
                                        'interjection': interjection,
@@ -318,7 +335,7 @@ for filename in files:
                                        'date': date,
                                        'issue': current_issue}
 
-                    table.insert(speech_dict)
+                    #table.insert(speech_dict)
                     interjection_length += 1
                     ls_interjection_length.append([interjection_length, wp, session, seq, sub, current_speaker, interjection_text])
                     interjection = False
@@ -348,6 +365,7 @@ for filename in files:
                                            'wp': wp,
                                            'session': session,
                                            'president': current_president,
+                                           'ministerium': [current_ministerium],
                                            'role': [current_role],
                                            'state': [STATE],
                                            'interjection': interjection,
@@ -364,6 +382,7 @@ for filename in files:
                                    'wp': wp,
                                    'session': session,
                                    'president': current_president,
+                                   'ministerium': current_ministerium,
                                    'role': current_role,
                                    'state': STATE,
                                    'interjection': interjection,
@@ -371,7 +390,7 @@ for filename in files:
                                    'date': date,
                                    'issue': current_issue}
 
-                    table.insert(speech_dict)
+                    #table.insert(speech_dict)
                     ls_text_length.append([text_length, wp, session, seq, sub, current_speaker, text])
                 # stops iterating over lines, if end of session is reached e.g. Schluss: 17:16 Uhr
                 if END_MARK.search(line):
@@ -419,6 +438,7 @@ for filename in files:
                                                'wp': wp,
                                                'session': session,
                                                'president': current_president,
+                                               'ministerium': [current_ministerium],
                                                'role': [current_role],
                                                'state': [STATE],
                                                'interjection': interjection,
@@ -435,6 +455,7 @@ for filename in files:
                                        'wp': wp,
                                        'session': session,
                                        'president': current_president,
+                                       'ministerium': current_ministerium,
                                        'role': current_role,
                                        'state': STATE,
                                        'interjection': interjection,
@@ -442,7 +463,7 @@ for filename in files:
                                        'date': date,
                                        'issue': current_issue}
 
-                        table.insert(speech_dict)
+                        #table.insert(speech_dict)
                         ls_text_length.append([text_length, wp, session, seq, sub, current_speaker, text])
 
 
@@ -489,6 +510,7 @@ for filename in files:
                                            'wp': wp,
                                            'session': session,
                                            'president': current_president,
+                                           'ministerium': [current_ministerium],
                                            'role': [current_role],
                                            'state': [STATE],
                                            'interjection': [interjection],
@@ -505,6 +527,7 @@ for filename in files:
                                        'wp': wp,
                                        'session': session,
                                        'president': current_president,
+                                       'ministerium': current_ministerium,
                                        'role': current_role,
                                        'state': STATE,
                                        'interjection': interjection,
@@ -512,7 +535,7 @@ for filename in files:
                                        'date': date,
                                        'issue': issue}
 
-                        table.insert(speech_dict)
+                        #table.insert(speech_dict)
                     sub += 1
                     interjection_length += 1
                     ls_interjection_length.append([interjection_length, wp, session, seq, sub, current_speaker, interjection_text])
@@ -559,6 +582,7 @@ for filename in files:
             current_executive = executive
             current_servant = servant
             current_role = role
+            current_ministerium = ministerium
         if not has_more and in_session:
             print(str(wp) + ' ' + str(session) + ' : no match for end mark -> error')
 
@@ -567,7 +591,10 @@ for filename in files:
     ls_speeches.append(pd_session_speeches)
 
 pd_speeches = pd.concat(ls_speeches).reset_index()
-pd_speeches.to_csv('mv_test.csv')
+#pd_speeches.to_csv('mv_test.csv')
+pd_speeches['speaker'] = pd_speeches['speaker'].apply(lambda x: x.replace('<poi_end>', '').replace('D r .', 'Dr.').strip())
+pd_speeches['speaker'] = pd_speeches['speaker'].apply(lambda x: helper.adjust_names_mv(x))
+
 
 
 # checks
