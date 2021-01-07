@@ -151,6 +151,9 @@ def parseXML(xml_in, params, state):
                 #import pdb; pdb.set_trace()
                 print('removed header ' + textbox_text)
                 continue
+            elif textbox_bounds[1]<params['footer_bound'] and page_id not in ['1']:
+                print('removed footer ' + textbox_text)
+                continue
 
             # save a description of the line
             textbox = {'left': textbox_bounds[0], 'top': textbox_bounds[1], 'text': textbox_text}

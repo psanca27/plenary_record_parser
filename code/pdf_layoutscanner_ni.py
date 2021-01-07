@@ -4,7 +4,7 @@ from collections import Counter
 from tqdm import tqdm
 
 #os.chdir('/home/felix/privat/plenarprotokolle/Hessen')
-os.chdir('/Volumes/Datahouse/Users/Stipe/Documents/Studium/Master VWL/Masterarbeit/plenarprotokolle/code')
+#os.chdir('/Volumes/Datahouse/Users/Stipe/Documents/Studium/Master VWL/Masterarbeit/plenarprotokolle/code')
 DATA_PATH = os.environ.get('DATA_PATH', '../data/NI')
 
 from lib import layout_collector
@@ -39,22 +39,22 @@ c_y1 = Counter(y1_occurences_ls)
 
 with open(os.path.join(DATA_PATH, "x0_occurences_ls.json"), "w", encoding="utf-8") as fp:   #Pickling
     json.dump(x0_occurences_ls, fp)
-with open("x1_occurences_ls.json", "w", encoding="utf-8") as fp:   #Pickling
+with open(os.path.join(DATA_PATH, "x1_occurences_ls.json"), "w", encoding="utf-8") as fp:   #Pickling
     json.dump(x1_occurences_ls, fp)
-with open("text_boxes_occurences_ls.json", "w", encoding="utf-8") as fp:   #Pickling
+with open(os.path.join(DATA_PATH, "text_boxes_occurences_ls.json"), "w", encoding="utf-8") as fp:   #Pickling
     json.dump(text_boxes_ls, fp)
-with open("y0_occurences_ls.json", "w", encoding="utf-8") as fp:   #Pickling
+with open(os.path.join(DATA_PATH, "y0_occurences_ls.json"), "w", encoding="utf-8") as fp:   #Pickling
     json.dump(y0_occurences_ls, fp)
-with open("y1_occurences_ls.json", "w", encoding="utf-8") as fp:   #Pickling
+with open(os.path.join(DATA_PATH, "y1_occurences_ls.json"), "w", encoding="utf-8") as fp:   #Pickling
     json.dump(y1_occurences_ls, fp)
 
-with open("c_x0.json", "w", encoding="utf-8") as fp:   #Pickling
+with open(os.path.join(DATA_PATH, "c_x0.json"), "w", encoding="utf-8") as fp:   #Pickling
     json.dump(c_x0, fp)
-with open("c_x1.json", "w", encoding="utf-8") as fp:   #Pickling
+with open(os.path.join(DATA_PATH, "c_x1.json"), "w", encoding="utf-8") as fp:   #Pickling
     json.dump(c_x1, fp)
-with open("c_y0.json", "w", encoding="utf-8") as fp:   #Pickling
+with open(os.path.join(DATA_PATH, "c_y0.json"), "w", encoding="utf-8") as fp:   #Pickling
     json.dump(c_y0, fp)
-with open("c_y1.json", "w", encoding="utf-8") as fp:   #Pickling
+with open(os.path.join(DATA_PATH, "c_y1.json"), "w", encoding="utf-8") as fp:   #Pickling
     json.dump(c_y1, fp)
 
 with open(os.path.join(DATA_PATH, "c_x0.json"), encoding="utf-8") as fp:
