@@ -5,7 +5,7 @@ import json
 from collections import Counter
 from tqdm import tqdm
 
-os.chdir('/Volumes/Datahouse/Users/Stipe/Documents/Studium/Master VWL/Masterarbeit/plenarprotokolle/code')
+#os.chdir('/Volumes/Datahouse/Users/Stipe/Documents/Studium/Master VWL/Masterarbeit/plenarprotokolle/code')
 
 from lib import layout_collector
 
@@ -61,9 +61,9 @@ def scans_layout_plenary_records(state):
     with open(os.path.join(DATA_PATH, "c_y1.json"), "w", encoding="utf-8") as fp:   #Pickling
         json.dump(c_y1, fp)
 
-with open(os.path.join(DATA_PATH, "c_x0.json"), encoding="utf-8") as fp:
-	c_x0 = json.loads(fp.read())
-Counter(c_x0)
+#with open(os.path.join(DATA_PATH, "c_x0.json"), encoding="utf-8") as fp:
+#	c_x0 = json.loads(fp.read())
+#Counter(c_x0)
 
 
 
