@@ -283,22 +283,34 @@ def deal_with_green_party(line):
     return line
         
     
-def replace_unrecognized_chars_bw(line):
+def replace_unrecognized_chars(line):
     line = (
         line.replace('(cid:252)', 'ü')
         .replace('(cid:246)', 'ö')
+        .replace('(cid:237)', 'i')
+        .replace('(cid:231)', 'ç')
         .replace('(cid:228)', 'ä')
         .replace('(cid:224)', 'à')
         .replace('(cid:223)', 'ß')
         .replace('(cid:220)', 'Ü')
+        .replace('(cid:216)', 'é')
         .replace('(cid:214)', 'Ö')
+        .replace('(cid:190)', 'Ä')        
         .replace('(cid:160)', ' ')
+        .replace('(cid:159)', '-')
+        .replace('(cid:155)', 'è')
         .replace('(cid:150)', '-')
         .replace('(cid:147)', '"')      
         .replace('(cid:146)', "'")
         .replace('(cid:145)', "'")
+        .replace('(cid:144)', "'")
+        .replace('(cid:143)', "'")
+        .replace('(cid:141)', "'")
+        .replace('(cid:140)', "'")
         .replace('(cid:132)', '"')
         .replace('(cid:130)', "'")
+        .replace('(cid:21)', "-")
+
         .replace('\xa0', ' ')
         .replace('\xad', '-')
         )

@@ -107,12 +107,12 @@ def parseXML(xml_in, params, state):
                 for char in chars:
                     if poi: 
                         if char.attrib:
-                            if "Bold" not in char.attrib['font']:
+                            if "Bold" not in char.attrib['font'] and '+Adv' not in char.attrib['font']:
                                 #import pdb; pdb.set_trace()
                                 textbox_text = textbox_text + '<poi_end>'
                                 poi = False
                     elif char.attrib:
-                        if "Bold" in char.attrib['font']:
+                        if "Bold" in char.attrib['font'] or '+Adv' in char.attrib['font']:
                             #import pdb; pdb.set_trace()
                             textbox_text = textbox_text + '<poi_begin>'
                             poi = True
@@ -131,7 +131,10 @@ def parseXML(xml_in, params, state):
                 #import pdb; pdb.set_trace()
                 print('removed header ' + textbox_text)
                 continue
-
+            elif textbox_bounds[1]<params['footer_bound'] and page_id not in ['1']:
+                print('removed footer ' + textbox_text)
+                continue
+                
             # save a description of the line
             textbox = {'left': textbox_bounds[0], 'top': textbox_bounds[1], 'text': textbox_text}
 
@@ -195,7 +198,7 @@ def iteratesFiles(state):
     files = [os.path.join(dp, f) for dp, dn, fn in os.walk(os.path.expanduser(DATA_PATH)) for f in fn if f.endswith(".xml")]
     with open(os.path.join(DATA_PATH, "params_" + state + ".json"), encoding="utf-8") as fp:
         params = json.loads(fp.read())
-    for filename in sorted(files)[:50]:
+    for filename in sorted(files):
         print(filename)
         result = parseXML(filename, params=params, state=state)
         # no_digits = len(filename.split('_')[3].split('.')[0])
