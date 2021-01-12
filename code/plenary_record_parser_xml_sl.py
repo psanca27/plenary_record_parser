@@ -28,9 +28,9 @@ DATA_PATH = os.environ.get('DATA_PATH', '../data/' + STATE)
 # regular expressions to capture speeches of one session
 BEGIN_STRING = r'^<poi_begin>(Alterspräsident(?:in)?|Präsident(?:in)?|Vizepräsident(?:in)?)\s(.+?):'
 END_STRING = r'^Anlage\s[0-9]{1, 2}|THE\sEND'
-CHAIR_STRING = r'^<poi_begin>(Alterspräsident(?:in)?|Präsident(?:in)?|Vizepräsident(?:in)?)\s(.+?):'
-SPEAKER_STRING = r'^<poi_begin>Abg.\s(.+?)\s\((CDU|SPD|FDP|(?:DIE\s+)?LINKE\.?|B\s+90/GRÜNE|PIRATEN|AfD)\)(?:\,\s)?(Berichterstatter(?:in)?)?'
-EXECUTIVE_STRING = r'^<poi_begin>(Minister(?:in|präsident(?:in)?)?)\s(.+)'
+CHAIR_STRING = r'^<poi_begin>(Alterspräsident(?:in)?|Präsident(?:in)?|Vizepräsident(?:in)?)\s(.+?)(?:\s+?\(.+?\))?:'
+SPEAKER_STRING = r'^<poi_begin>Abg.\s(.+?)\s\((CDU|SPD|FDP|(?:DIE\s+)?LINKE\.?|B\s+90/G[Rr][Üü][Nn][Ee]|PIRATEN|AfD|fraktionslos)\)(?:\,\s)?(Berichterstatter(?:in)?)?'
+EXECUTIVE_STRING = r'^<poi_begin>(Minister(?:in|präsident(?:in)?)?)\s(.+)(?:\s+?\(.+?\))?:'
 OFFICIALS_STRING = r'^<poi_begin>(Staatssekretär(?:in)?)\s(.+)'
 
 # compilation of regular expressions
@@ -171,7 +171,7 @@ for filename in files:
         if '<poi_begin>' in line:
             if CHAIR_MARK.match(line):
                 s = CHAIR_MARK.match(line)
-                new_speaker = re.sub(' +', ' ', s.group(2))
+                new_speaker = re.sub(' +', ' ', s.group(1)) +  ' ' + re.sub(' +', ' ', s.group(2))
                 president = True
                 executive = False
                 servant = False
@@ -181,7 +181,7 @@ for filename in files:
                 ministerium = None
             elif EXECUTIVE_MARK.match(line):
                 s = EXECUTIVE_MARK.match(line)
-                new_speaker = re.sub(' +', ' ', s.group(2))
+                new_speaker = re.sub(' +', ' ', s.group(1)) +  ' ' + re.sub(' +', ' ', s.group(2)).replace('*', '').strip()
                 role = 'executive'
                 party = None
                 president = False
@@ -191,7 +191,7 @@ for filename in files:
                 ministerium = None
             elif OFFICIALS_MARK.match(line):
                 s = OFFICIALS_MARK.match(line)
-                new_speaker = re.sub(' +', ' ', s.group(1))
+                new_speaker = re.sub(' +', ' ', s.group(1)) +  ' ' + re.sub(' +', ' ', s.group(2))
                 party = None
                 president = False
                 executive = False
@@ -296,11 +296,7 @@ for filename in files:
                 sub = 0
                 # resets current_speaker for next speech
                 current_speaker = None
-                # to know order of speech within a given plenary session
-                seq += 1
-                # resets sub counter (for parts of one speech: speakers' parts and interjections)
-                # for next speech
-                sub = 0
+
             if END_MARK.search(line):
                 in_session = False
                 break
