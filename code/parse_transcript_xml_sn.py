@@ -13,6 +13,8 @@ import logging
 # text right x0: 305
 # interjection: varies
 
+#bold fonts identified in wp 3 session 43, 44 + standard bold
+bold_fonts = ['EIBKOD+AdvPS_POB', 'AOOPBF+AdvPS_POB', 'AOOPEI+AdvPOB', 'Bold']
 l = ['Tagesordnungspunkt', 'Aktuelle Debatte']
 
 def lookahead(iterable):
@@ -115,12 +117,14 @@ def parseXML(xml_in, params, state):
                 for char in chars:
                     if poi: 
                         if char.attrib:
-                            if "Bold" not in char.attrib['font']:
+                            #if "Bold" not in char.attrib['font']:
+                            if all(f not in char.attrib['font'] for f in bold_fonts):
                                 #import pdb; pdb.set_trace()
                                 textbox_text = textbox_text + '<poi_end>'
                                 poi = False
                     elif char.attrib:
-                        if "Bold" in char.attrib['font']:
+                        #if "Bold" in char.attrib['font']:
+                        if any(f in char.attrib['font'] for f in bold_fonts):
                             #import pdb; pdb.set_trace()
                             textbox_text = textbox_text + '<poi_begin>'
                             poi = True
@@ -219,9 +223,10 @@ def parseXML(xml_in, params, state):
     #import pdb; pdb.set_trace()
     return text
 
+
 def iteratesFiles(state):
     DATA_PATH = os.environ.get('DATA_PATH', '../data/' + state)
-    files = [os.path.join(dp, f) for dp, dn, fn in os.walk(os.path.expanduser(DATA_PATH)) for f in fn if f.endswith("new.xml")]
+    files = [os.path.join(dp, f) for dp, dn, fn in os.walk(os.path.expanduser(DATA_PATH)) for f in fn if f.endswith(".xml")]
     with open(os.path.join(DATA_PATH, "params_" + state + ".json"), encoding="utf-8") as fp:
         params = json.loads(fp.read())
     for filename in sorted(files):
