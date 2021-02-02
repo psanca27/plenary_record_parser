@@ -2,10 +2,13 @@ import os
 from operator import itemgetter
 import re
 import sys
-import xml.etree.cElementTree as ET
+#import xml.etree.cElementTree as ET
+import xml.etree.ElementTree as ET 
 from collections import Counter
 import json
 import logging
+from lxml import etree
+
 
 # first set of pages:
 # text left x0: 57
@@ -53,9 +56,13 @@ def parseXML(xml_in, params, state):
     found_ending_mark = False
 
     # get the page elements
-    tree = ET.ElementTree(file=xml_in)
+    parser = etree.XMLParser(recover=True)
+    tree = etree.parse(xml_in, parser=parser)  
+    #tree = ET.parse(xml_in, parser=parser)
     pages = tree.getroot()
 
+  
+    
     if pages.tag != "pages":
         sys.exit("ERROR: pages.tag is %s instead of pages!" % pages.tag)
 
@@ -128,7 +135,11 @@ def parseXML(xml_in, params, state):
                             #import pdb; pdb.set_trace()
                             textbox_text = textbox_text + '<poi_begin>'
                             poi = True
-                    textbox_text = textbox_text + char.text
+                    try:
+                        textbox_text = textbox_text + char.text
+                    except TypeError:
+                        print('Attention! You have a TypeError here!', page_id)
+                    
                 if not has_more and poi:
                     textbox_text = textbox_text + '<poi_end>'
 
