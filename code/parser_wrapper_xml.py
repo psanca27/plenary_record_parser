@@ -6,7 +6,7 @@ from tqdm import tqdm
 #1: state
 #2: 0.1 
 #3: 2.0
-#4: 0.5
+#4: 0.3/0.4/0.5
 
 def converts_pdf_to_text(state, word_margin, char_margin, line_margin):
 
