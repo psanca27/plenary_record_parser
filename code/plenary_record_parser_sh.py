@@ -11,19 +11,24 @@ import pandas as pd
 import json
 from datetime import datetime
 
-os.chdir('/Volumes/Datahouse/Users/Stipe/Documents/Studium/Master VWL/Masterarbeit/plenarprotokolle/code')
+#os.chdir('/Volumes/Datahouse/Users/Stipe/Documents/Studium/Master VWL/Masterarbeit/plenarprotokolle/code')
 #os.chdir('/home/felix/privat/plenarprotokolle/code')
+os.chdir('../code')
+pd.options.display.max_rows = 500
+pd.options.display.max_colwidth = 150
+
 
 from lib import helper
 
+locale.setlocale(locale.LC_TIME, "de_DE")
+
+STATE = 'SH'
+
+DATA_PATH = os.environ.get('DATA_PATH', '../data/' + STATE)
+
+
 log = logging.getLogger(__name__)
 
-if os.getcwd()=='/home/felix/privat/plenarprotokolle/code':
-    locale.setlocale(locale.LC_TIME, "de_DE.utf8")
-else:
-    locale.setlocale(locale.LC_TIME, "de_DE")
-
-DATA_PATH = os.environ.get('DATA_PATH', '../data/SH')
 
 ministers_wp18 = ['Torsten Albig', 'Robert Habeck', 'Monika Heinold', 'Anke Spoorendonk', 'Reinhard Meyer',
                   'Waltraud Wende', 'Andreas Breitner', 'Kristin Alheit']
@@ -34,9 +39,9 @@ ministers_wp19 = ['Daniel Günther', 'Sütterlin-Waack', 'Karin Prien', 'Hans-Jo
 # regular expressions to capture speeches of one session
 BEGIN_STRING = r'^Beginn:\s+(?:Beginn\s+)?[0-9]{1,2}[.:][0-9]{1,2}'
 END_STRING = r'^Schluss:\s+[0-9]{1,2}[.:][0-9]{1,2}'
-CHAIR_STRING = r'^(Alterspräsident(?:in)?|Präsident(?:in)?|Erste(?:r)?\s+Vizepräsident(?:in)?|Vizepräsident(?:in)?)\s+(Wolfgang\s+Kubicki|Klaus\s+Schlie|(?:Kirsten\s+)?Eickhoff-Weber|Oliver\s+Kumbartky|Rasmus\s+Andresen|Marlies\s+Fritzen|Annabell\s+Krämer|Bernd\s+Heinemann)(?:\s+\((?:fortfahrend|unterbrechend)\))?:'
-SPEAKER_STRING = r'^(.+?)\s+\[(AfD|CDU|SPD|FDP|SSW|PIRATEN|BÜNDNIS\s+90/DIE(?:\s+GRÜ(?:\-|NEN|fraktionslos))?)\]?(?:,\s+Berichterstatter(?:in)?)?'
-EXECUTIVE_STRING = r'^(?P<speaker1>.+?)\,\s+(Ministerpräsident(?:in)?:|Minister(?:in)?\s+für|Justizminister(?:in)?:|Finanzminister(?:in)?:|Innenminister(?:in)?)'
+CHAIR_STRING = r'^<poi_begin>(Alterspräsident(?:in)?|Präsident(?:in)?|Vizepräsident(?:in)?)\s+(.+?):'
+EXECUTIVE_STRING = r'^<poi_begin>(.*?)\,?<poi_end>\,?\s+(Ministerpräsident(?:in)?:|Minister(?:in)?\s+für\s+(\w+)|Justizminister(?:in)?:|Finanzminister(?:in)?:|Innenminister(?:in)?)'
+SPEAKER_STRING = r'<poi_begin>(.+?)\s+\[(AfD|CDU|SPD|F\.?D\.?P\.?|SSW|PIRATEN|BÜNDNIS\s+90\/DIE(?:\s+GRÜ(?:\-|NEN|fraktionslos))?)\]?(?:,\s+Berichterstatter(?:in)?)?'
 OFFICIALS_STRING = r'^Staatssekretär(?:in)?\s+(?P<speaker1>.+?):|^(?P<speaker2>.+?)\,\s+Staatssekretär(?:in)?'
 
 # compilation of regular expressions
@@ -59,16 +64,20 @@ ZWISCHENFRAGE_ANTWORT = re.compile(r'^-\s')
 
 STATE = 'SH'
 ls_speeches = []
-files = [os.path.join(dp, f) for dp, dn, fn in os.walk(os.path.expanduser(DATA_PATH)) for f in fn if f.endswith("pp.txt")]
+ls_interjection_length = []
+ls_text_length = []
+ls_interjection_length = []
+log_sessions = []
+files = [os.path.join(dp, f) for dp, dn, fn in os.walk(os.path.expanduser(DATA_PATH)) for f in fn if f.endswith(".txt")]
 
-db = os.environ.get('DATABASE_URI', 'sqlite:///../data/data.sqlite')
-eng = dataset.connect(db)
-table = eng['de_landesparlamente_plpr']
+#db = os.environ.get('DATABASE_URI', 'sqlite:///../data/data.sqlite')
+#eng = dataset.connect(db)
+#table = eng['de_landesparlamente_plpr']
 
 # debug mode
 debug = False
 
-for filename in files:
+for filename in files[:10]:
 
     # extracts wp, session no. and if possible date of plenary session
     wp, session = str(int(filename[11:13])), str(int(filename[14:17]))
@@ -77,14 +86,14 @@ for filename in files:
     print(str(wp), str(session))
        
     # deletes existing entries for this state's election period and session. e.g SH 18, 001
-    if not debug:
-      table.delete(wp=wp, session=session, state=STATE)
+    #if not debug:
+      #table.delete(wp=wp, session=session, state=STATE)
 
-    if wp=='18':
-        ministers = ministers_wp18
+    #if wp=='18':
+       # ministers = ministers_wp18
         # abg = abg_wp18
-    elif wp=='19':
-        ministers = ministers_wp19
+    #elif wp=='19':
+        #ministers = ministers_wp19
         # abg = abg_wp19
 
     with open(filename, 'rb') as fh:
@@ -263,7 +272,7 @@ for filename in files:
                                        'state': STATE,
                                        'interjection': interjection,
                                        'date': date}
-                        table.insert(speech_dict)
+                        #table.insert(speech_dict)
 
                     if 'Zwischenfrage' in text and current_president:
                         # import pdb; pdb.set_trace()
@@ -340,7 +349,7 @@ for filename in files:
                                            'state': STATE,
                                            'interjection': interjection,
                                            'date': date}
-                            table.insert(speech_dict)
+                            #table.insert(speech_dict)
 
                 #
                 sub += 1
@@ -409,7 +418,7 @@ for filename in files:
                                        'interjection': interjection,
                                        'date': date}
 
-                        table.insert(speech_dict)
+                        #table.insert(speech_dict)
 
                     sub += 1
                     interjection_length += 1

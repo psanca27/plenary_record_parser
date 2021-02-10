@@ -7,7 +7,7 @@ import pandas as pd
 
 
 
-DATA_PATH = r'../data/TH/'
+DATA_PATH = r'../data/SH/'
 
 
 with open(os.path.join(DATA_PATH, "c_x0.json"), encoding="utf-8") as fp:
@@ -51,4 +51,4 @@ print('\n')
 
 df_cy1 = pd.DataFrame.from_dict(c_y1, orient='index')
 df_cy1.index = df_cy1.index.astype(float)
-print('cx0:', df_cy1.sort_values(by = 0, ascending=False).head(20))
+print('cy1:', df_cy1.sort_values(by = 0, ascending=False).head(20))
