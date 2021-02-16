@@ -91,7 +91,7 @@ for filename in files:
         EXECUTIVE_MARK = re.compile(EXECUTIVE_STRING_14)
         OFFICIALS_MARK = re.compile(OFFICIALS_STRING_14)
         POI_ONE_LINER = re.compile(r'(.+?)?<poi_end>(?:.+)?')
-        SPEECH_CONTINUTATION_STRING = re.compile(r'^\(.*?\)')
+        SPEECH_CONTINUTATION_STRING = re.compile(r'^(<poi_begin>)?\(.*?\)\s?(<poi_end>)?')
         
     else:
         # compilation of regular expressions
@@ -103,7 +103,7 @@ for filename in files:
         EXECUTIVE_MARK = re.compile(EXECUTIVE_STRING)
         OFFICIALS_MARK = re.compile(OFFICIALS_STRING)
         POI_ONE_LINER = re.compile(r'(.+?)?<poi_end>(?:.+)?')
-        SPEECH_CONTINUTATION_STRING = re.compile(r'^<poi_begin>\(.*?\)<poi_end>')
+        SPEECH_CONTINUTATION_STRING = re.compile(r'^<poi_begin>\(.*?\)\s?<poi_end>')
 
     # table.delete(wp=wp, session=session, state=STATE)
 
@@ -266,6 +266,7 @@ for filename in files:
                 ministerium = None
             else:
                 if SPEECH_CONTINUTATION_STRING.match(line):
+                    print(line)
                     line = ''
                 elif POI_ONE_LINER.match(line):
                     issue = POI_ONE_LINER.match(line).group(1)
