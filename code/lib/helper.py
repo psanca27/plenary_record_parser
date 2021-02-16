@@ -536,3 +536,57 @@ def adjust_names_mv(new_speaker):
         new_speaker = 'Gabriele Mestan'
     
     return new_speaker
+
+
+
+def clean_line_sh_14(line):
+    line = line.replace("\'Oll", 'von')
+    line = line.replace("\Oll", 'von')
+    line = line.replace('Dmck', 'Druck')
+    line = line.replace('dmck', 'druck')
+    line = line.replace('Bildmtg', 'Bildung')
+    line = line.replace('bildmtg', 'bildung')
+
+    return line
+
+
+def clean_speaker_sh_14(speaker):
+    if 'Pr' in speaker:
+        speaker = 'Präsident Heinz-Werner Arens'
+    elif 'Asta' in speaker:
+        speaker = "Vizepräsident Dr. Eberhard Dall' Asta"
+    elif 'Köt' in speaker:
+        speaker = 'Vizepräsidentin Dr. Gabriete Kötschau'
+    elif 'Heinold' in speaker:
+        speaker = 'Monika Heinold'
+    elif 'Detlef' in speaker:
+        speaker = 'Detlef Matthiessen'
+    elif 'Puls' in speaker:
+        speaker = 'Klaus-Peter Puls'
+    elif 'Iaurus' in speaker:
+        speaker = 'Heinz Maurus'
+    elif 'Hielmcrone' in speaker:
+        speaker = 'Dr. Ulf von Hielmcrone'
+    elif 'Weber' in speaker:
+        speaker = 'Jürgen Weber'
+    elif 'Anke' in speaker:
+        speaker = 'Anke Spoorendonk'
+    elif 'Kayenburg' in speaker:
+        speaker = 'Martin Kayenburg'
+    elif 'Hentsche' in speaker:
+        speaker = 'Karl-Martin Hentshcel'
+    elif 'Hentscbel' in speaker:
+        speaker = 'Karl-Martin Hentshcel'
+    elif 'Friihlich' in speaker:
+        speaker = 'Irene Fröhlich'
+    elif speaker == 'Ute Erdsiek·Rave':
+        speaker = 'Ute Erdsiek-Rave'
+    elif 'Zahn' in speaker:
+        speaker = 'Peter Zahn'
+    elif 'Hunecke' in speaker:
+        speaker = 'Gudrun Hunecke'
+    elif 'Todsen-Reese' in speaker:
+        speaker = 'Herlich Marie Todsen-Reese'
+    elif 'Kubicki' in speaker:
+        speaker = 'Wolfgang Kubicki'    
+    return speaker

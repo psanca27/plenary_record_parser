@@ -37,24 +37,24 @@ ministers_wp19 = ['Daniel Günther', 'Sütterlin-Waack', 'Karin Prien', 'Hans-Jo
                   'Robert Habeck', 'Monika Heinold', 'Bernd Buchholz', 'Heiner Garg']
 
 # regular expressions to capture speeches of one session
-BEGIN_STRING = r'^Beginn:\s+(?:Beginn\s+)?[0-9]{1,2}[.:][0-9]{1,2}'
-END_STRING = r'^Schluss:\s+[0-9]{1,2}[.:][0-9]{1,2}'
-CHAIR_STRING = r'^<poi_begin>(Alterspräsident(?:in)?|Präsident(?:in)?|Vizepräsident(?:in)?)\s+(.+?):'
-EXECUTIVE_STRING = r'^<poi_begin>(.*?)\,?<poi_end>\,?\s+(Ministerpräsident(?:in)?:|Minister(?:in)?\s+für\s+(\w+)|Justizminister(?:in)?:|Finanzminister(?:in)?:|Innenminister(?:in)?)'
-SPEAKER_STRING = r'<poi_begin>(.+?)\s+\[(AfD|CDU|SPD|F\.?D\.?P\.?|SSW|PIRATEN|BÜNDNIS\s+90\/DIE(?:\s+GRÜ(?:\-|NEN|fraktionslos))?)\]?(?:,\s+Berichterstatter(?:in)?)?'
+BEGIN_STRING = r'^(<poi_begin>)?Beginn(.*?)?:?\s+(.*?)?(?:Beginn\s+)?[0-9]{1,2}[.:][0-9]{1,2}'
+END_STRING = r'^(<poi_begin>)?Schluss:\s+[0-9]{1,2}[.:][0-9]{1,2}'
+CHAIR_STRING = r'^<poi_begin>\s?(Alterspräsident(?:in)?|Präsident(?:in)?|Vizepräsident(?:in)?)\s+(.+?):'
+EXECUTIVE_STRING = r'^<poi_begin>(.*?)\,?<poi_end>\,?\s+(Ministerpräsident(?:in)?:|Minister(?:in)?\s+für\s+(\w+)|Justizminister(?:in)?:|Finanzminister(?:in)?:|Innenminister(?:in)?:)'
+SPEAKER_STRING = r'^<poi_begin>(.+?)\s*?\[(AfD|CDU|SPD|F\.?D\.?P\.?|SSW|PIRATEN|BÜNDNIS\s+90\/DIE(?:\s+GRÜ(?:\-|NEN|fraktionslos))?)\]?(?:,\s+Berichterstatter(?:in)?)?'
 OFFICIALS_STRING = r'^Staatssekretär(?:in)?\s+(?P<speaker1>.+?):|^(?P<speaker2>.+?)\,\s+Staatssekretär(?:in)?'
 
-# compilation of regular expressions
-# advantage combination of strings is possible
-BEGIN_MARK = re.compile(BEGIN_STRING)
-END_MARK = re.compile(END_STRING)
-CHAIR_MARK = re.compile(CHAIR_STRING)
-SPEAKER_MARK = re.compile(SPEAKER_STRING)
-EXECUTIVE_MARK = re.compile(EXECUTIVE_STRING)
-OFFICIALS_MARK = re.compile(OFFICIALS_STRING)
+BEGIN_STRING_14 = r'^(<poi_begin>)?Beginn(.*?)?:?\s+(.*?)?(?:Beginn\s+)?[0-9]{1,2}[.:][0-9]{1,2}'
+END_STRING_14 = r'^(<poi_begin>)?Schluss:\s+[0-9]{1,2}[.:][0-9]{1,2}'
+CHAIR_STRING_14 = r'^(<poi_begin>)?(Alterspräsident(?:in)?|Präsident(?:in)?|Vizepräsident(?:in)?)\s+(.+?):'
+EXECUTIVE_STRING_14 = r'^(?!<interjection_begin>|\(|\[|\_|\.|\"|nicht|und|[Aa]bgeordneten?)(<poi_begin>)?(.*?)\,\s+(Ministerpräsident(?:in)?:|Minister(?:in)?\s(\w+\s\w+)?|Justizminister(?:in)?:|Finanzminister(?:in)?:|Innenminister(?:in)?:)'
+SPEAKER_STRING_14 = r'^(?!<interjection_begin>|\(|\[|\_|\.|\"|nicht|und|weil|von|Astmp|Neugebauer|er|schel|[Aa]bgeordneten?)(<poi_begin>)?(.+?)\s*?(\[\s?|l\s?|J\s?|1\s?)(AfD|C\s?D\s?U|S\s?P\s?D|F\.?D\.?P\.?|SSW|PIRATEN|B[Üü]NDNIS\s+90\/DIE(?:\s+GR[Üü](?:\-|NEN|fraktionslos))?)(\s?\]|\s?l|\s?J|\s?1)?(?!\))(?:,\s+Berichterstatter(?:in)?)?'
+OFFICIALS_STRING_14= r'^Staatssekretär(?:in)?\s+(?P<speaker1>.+?):|^(?P<speaker2>.+?)\,\s+Staatssekretär(?:in)?'
+
+
 #SPEECH_ENDS = re.compile("|".join([CHAIR_STRING, SPEAKER_STRING, EXECUTIVE_STRING, OFFICIALS_STRING]))
-INTERJECTION_MARK = re.compile(r'^\(')
-INTERJECTION_END = re.compile(r'\)$')
+INTERJECTION_MARK = re.compile(r'^<interjection_begin>\(')
+INTERJECTION_END = re.compile(r'.+\)<interjection_end>$')
 HEADER_MARK = re.compile(r'^Schleswig\-Holsteinischer\s+Landtag\s+\([0-9]{1,2}\.\s+WP\)')
 FOOTER_LASTPAGE_MARK = re.compile(r'Herausgegeben\s+vom\s+Präsidenten\s+des\s+Schleswig\-Holsteinischen\s+Landtags\s+\-\s+Stenografischer\s+Dienst')
 #HEADER_SPEAKER_MARK = re.compile(r'\((?:Abg\.)|\(Alterspräsident(?:in)?|\(Präsident(?:in)?|\(Vizepräsident(?:in)?|\(Staatssekretär(?:in)?|\(Minister(?:in)?|\(Justizminister(?:in)?:|\(Finanzminister(?:in):|\(Innenminister(?:in)?|\(Ministerpräsident(?:in)?')
@@ -63,57 +63,67 @@ NO_INTERJECTION = re.compile(r'^\([A-Za-z]{1,4}\)')
 ZWISCHENFRAGE_ANTWORT = re.compile(r'^-\s')
 
 STATE = 'SH'
-ls_speeches = []
-ls_interjection_length = []
-ls_text_length = []
-ls_interjection_length = []
-log_sessions = []
 files = [os.path.join(dp, f) for dp, dn, fn in os.walk(os.path.expanduser(DATA_PATH)) for f in fn if f.endswith(".txt")]
 
 #db = os.environ.get('DATABASE_URI', 'sqlite:///../data/data.sqlite')
 #eng = dataset.connect(db)
 #table = eng['de_landesparlamente_plpr']
 
-# debug mode
-debug = False
+ls_speeches = []
+ls_interjection_length = []
+ls_text_length = []
+ls_interjection_length = []
+log_sessions = []
 
-for filename in files[:10]:
+
+for filename in files:
 
     # extracts wp, session no. and if possible date of plenary session
-    wp, session = str(int(filename[11:13])), str(int(filename[14:17]))
+    wp, session = int(filename[11:13]), int( filename[14:17])
     date = None
+    print(wp, session)
+    
+    if wp == 14:
+        BEGIN_MARK = re.compile(BEGIN_STRING_14)
+        END_MARK = re.compile(END_STRING_14)
+        CHAIR_MARK = re.compile(CHAIR_STRING_14)
+        SPEAKER_MARK = re.compile(SPEAKER_STRING_14)
+        EXECUTIVE_MARK = re.compile(EXECUTIVE_STRING_14)
+        OFFICIALS_MARK = re.compile(OFFICIALS_STRING_14)
+        POI_ONE_LINER = re.compile(r'(.+?)?<poi_end>(?:.+)?')
+        SPEECH_CONTINUTATION_STRING = re.compile(r'^\(.*?\)')
+        
+    else:
+        # compilation of regular expressions
+        # advantage combination of strings is possible
+        BEGIN_MARK = re.compile(BEGIN_STRING)
+        END_MARK = re.compile(END_STRING)
+        CHAIR_MARK = re.compile(CHAIR_STRING)
+        SPEAKER_MARK = re.compile(SPEAKER_STRING)
+        EXECUTIVE_MARK = re.compile(EXECUTIVE_STRING)
+        OFFICIALS_MARK = re.compile(OFFICIALS_STRING)
+        POI_ONE_LINER = re.compile(r'(.+?)?<poi_end>(?:.+)?')
+        SPEECH_CONTINUTATION_STRING = re.compile(r'^<poi_begin>\(.*?\)<poi_end>')
 
-    print(str(wp), str(session))
-       
-    # deletes existing entries for this state's election period and session. e.g SH 18, 001
-    #if not debug:
-      #table.delete(wp=wp, session=session, state=STATE)
-
-    #if wp=='18':
-       # ministers = ministers_wp18
-        # abg = abg_wp18
-    #elif wp=='19':
-        #ministers = ministers_wp19
-        # abg = abg_wp19
+    # table.delete(wp=wp, session=session, state=STATE)
 
     with open(filename, 'rb') as fh:
         text = fh.read().decode('utf-8')
 
-    base_data = {
-        'filename': filename,
-        'sitzung': session,
-        'wahlperiode': wp,
-        'state': 'sachen-anhalt'
-    }
+    print("Loading transcript: %s/%.3d, from %s" % (wp, session, filename))
 
-    print("Loading transcript: %s/%s, from %s" % (wp, session, filename))
-
-    lines = text.replace('\n', '\r').split('\r')
+    lines = text.split('\r\n')
 
     # trigger to skip lines until date is captured
     date_captured = False
     # trigger to skip lines until in_session mark is matched
     in_session = False
+
+    # poi
+    poi = False
+    poi_prev = False
+    issue = None
+    concat_issues = False
 
     # variable captures contain new speaker if new speaker is detected
     new_speaker = None
@@ -126,6 +136,10 @@ for filename in files[:10]:
     interjection_complete = None
     cnt_brackets_opening = 0
     cnt_brackets_closing = 0
+    missing_closing = False
+
+    # identation
+    identation = False
 
     # trigger to find parts where zwischenfragen are continued without labelling current speaker
     zwischenfrage = False
@@ -137,25 +151,35 @@ for filename in files[:10]:
     servant = False
     party = None
     role = None
+    ministerium = None
+
 
     # counts to keep order
     seq = 0
     sub = 0
 
+    endend_with_interjection = False
+
     # contains list of dataframes, one df = one speech
-    speeches = [] 
+    speeches = []
 
     for line, has_more in helper.lookahead(lines):
-        # if line=='nen und Entscheidungen die Menschen in unserem':
-        #     import pdb; pdb.set_trace()
+        #if '<interjection_begin>Beifall im ganzen Hause)<interjection_end>' in line:
+        #    import pdb; pdb.set_trace()
+
+        #pdb.set_trace()
         # to avoid whitespace before interjections; like ' (Heiterkeit bei SPD)'
         line = line.lstrip()
+        line = helper.clean_line_sh_14(line)
 
         # grabs date, goes to next line until it is captured
         if not date_captured and DATE_CAPTURE.search(line):
-            date = DATE_CAPTURE.search(line).group(1)
-            date = datetime.strptime(date, '%d. %B %Y').strftime('%Y-%m-%d')
-            print('date captured ' + date)
+            date = DATE_CAPTURE.search(line).group(0)
+            try:
+                date = datetime.strptime(date, '%d. %B %Y').strftime('%Y-%m-%d')
+            except ValueError:
+                date = datetime.strptime(date, '%d.%m.%Y').strftime('%Y-%m-%d')
+            print('date captured ' +  date)
             date_captured = True
             continue
         elif not date_captured:
@@ -169,96 +193,136 @@ for filename in files[:10]:
             continue
 
         #ignores header lines and page numbers e.g. 'Landtag Mecklenburg-Vorpommer - 6. Wahlperiode [...]'
-        if HEADER_MARK.match(line) or line.strip().isdigit() or FOOTER_LASTPAGE_MARK.match(line):
-            continue
+        if line.replace('<interjection_begin>', '').replace('<interjection_end>', '').strip().isdigit():
+           continue
+        if poi:
+            if POI_ONE_LINER.match(line):
+                if POI_ONE_LINER.match(line).group(1):
+                    issue = issue + ' ' + POI_ONE_LINER.match(line).group(1)
+                issue = issue.replace('<poi_begin>', '')
+                issue = issue.replace('<poi_end>', '')
+                poi = False
+                # poi_prev = True
+                line = line.replace('<poi_end>', '')
+            else:
+                issue = issue + ' ' + line
 
         # detects speaker, if no interjection is found:
-        if not INTERJECTION_MARK.match(line) and not interjection:
+        if '<poi_begin>' in line or wp ==14:
             if CHAIR_MARK.match(line):
                 s = CHAIR_MARK.match(line)
-                new_speaker = re.sub(' +', ' ', s.group(2))
+                if wp == 14:
+                    new_speaker = re.sub(' +', ' ', s.group(2)) +  ' ' + re.sub(' +', ' ', s.group(3))
+                else:
+                    new_speaker = re.sub(' +', ' ', s.group(1)) +  ' ' + re.sub(' +', ' ', s.group(2))
                 president = True
                 executive = False
                 servant = False
                 party = None
                 role = 'chair'
-
-                zwischenfrage=False
+                poi_prev = False
+                ministerium = None
             elif EXECUTIVE_MARK.match(line):
-                if any(e in line for e in ministers):
-                    if not 'Herrn' in line and not 'Frau' in line:
-                        if not 'Ministerin Anke Spoorendonk, Ministerin' in line and not 'Breitner, und Herr Reinhard Meyer' in line and not 'Wort. Herr Minister Reinhard Meyer' in line:
-                            s = EXECUTIVE_MARK.match(line)
-                            new_speaker = re.sub(' +', ' ', s.group('speaker1'))
-                            president = False
-                            executive = True
-                            servant = False
-                            party = None
-                            role = 'executive'
-            # elif OFFICIALS_MARK.match(line):
-            #     s = OFFICIALS_MARK.match(line)
-            #     import pdb; pdb.set_trace()
-            #     if s.group('speaker2'):
-            #         new_speaker = re.sub(' +', ' ', s.group('speaker2'))
-            #     elif s.group('speaker1'):
-            #         new_speaker = re.sub(' +', ' ', s.group('speaker1'))
-            #     president = False
-            #     executive = False
-            #     servant = True
-            #     party = None
-            #     role = 'secretary'
+                s = EXECUTIVE_MARK.match(line)
+                if wp == 14:
+                    new_speaker = re.sub(' +', ' ', s.group(2))
+                    ministerium = re.sub(' +', ' ', s.group(3)).replace(':', '').replace("<poi_end>", '').strip()
+                    ministerium = re.sub('[If]\S+r', 'für', ministerium)
+                else:
+                    new_speaker = re.sub(' +', ' ', s.group(1))
+                    ministerium = re.sub(' +', ' ', s.group(2)).replace(':', '').replace("<poi_end>", '').strip()
+                role = 'executive'
+                party = None
+                president = False
+                executive = True
+                servant = False
+                poi_prev = False
+            elif OFFICIALS_MARK.match(line):
+                s = OFFICIALS_MARK.match(line)
+                new_speaker = re.sub(' +', ' ', s.group(1)) +  ' ' + re.sub(' +', ' ', s.group(2))
+                party = None
+                president = False
+                executive = False
+                servant = True
+                role = 'state secretary'
+                poi_prev = False
+                ministerium = None
             elif SPEAKER_MARK.match(line):
-                if not INTERJECTION_END.match(line):
-                    s = SPEAKER_MARK.match(line)
-                    new_speaker = re.sub(' +', ' ', s.group(1)).rstrip('*')
-                    president = False
-                    executive = False
-                    servant = False
-                    party = re.sub(r'BÜNDNIS\s+90/DIE(?:\s+GRÜ(?:\-|NEN))?', 'GRÜNE', s.group(2)).split(':')[0].replace(']', '')
-                    role = 'mp'
-            #ensures contiunation with corret speaker if protocol only uses '-'
-            elif zwischenfrage and speaker_cnt==2:
-                if ZWISCHENFRAGE_ANTWORT.match(line):
-                    # pdb; pdb.set_trace()
-                    s = antwort_s
-                    new_speaker = antwort_speaker
-                    president = antwort_president
-                    executive = antwort_executive
-                    servant = antwort_servant
-                    party = antwort_party
-                    role = antwort_role
+                s = SPEAKER_MARK.match(line)
+                if wp == 14:
+                    new_speaker = re.sub(' +', ' ', s.group(2)).rstrip(')').rstrip('*')                    
+                else:
+                    new_speaker = re.sub(' +', ' ', s.group(1)).rstrip(')').rstrip('*')
+                president = False
+                executive = False
+                servant = False
+                if wp == 14:
+                    party = s.group(4)
+                    party = re.sub(' +', '', party)
+                else:
+                    party = s.group(2)
+                role = 'mp'
+                poi_prev = False
+                ministerium = None
+            else:
+                if SPEECH_CONTINUTATION_STRING.match(line):
+                    line = ''
+                elif POI_ONE_LINER.match(line):
+                    issue = POI_ONE_LINER.match(line).group(1)
+                    issue = issue.replace('<poi_begin>', '')
+                    issue = issue.replace('<poi_end>', '')
+                    # poi_prev = True
+                # elif poi_prev:
+                 #   issue = issue + ' ' + line
+                  #  poi = True
+                else:
+                    issue = line
+                    poi = True
 
-                    zwischenfrage==False
+            if new_speaker:
+                new_speaker = new_speaker.replace(':', '').replace('<poi_end>', '').replace('<poi_begin>', '').replace('·', '').strip()
+                new_speaker = helper.clean_speaker_sh_14(new_speaker)
+                if party:
+                    party = party.replace('F.D.P.', 'FDP')
+                    if 'BÜNDNIS' in party or 'BüNDNIS' in party:
+                        party = 'GRÜNE'
+                    party = party.replace(':', '')
 
         # saves speech, if new speaker is detected:
         if s is not None and current_speaker is not None:
             # ensures that new_speaker != current_speaker or matches end of session, document
             if new_speaker!=current_speaker or END_MARK.search(line) or not has_more:
                 text_length = len(text)
-                text = helper.joins_cleans_text(text)
+                # joins list elements that are strings
+                text = ''.join(text)
+                # removes whitespace duplicates
+                text = re.sub(' +', ' ', text)
+                # removes whitespaces at the beginning and end
+                text = text.strip()
+                #text = re.sub('-(?=[a-z])', '', text)
+                text = text.replace('<interjection_begin>', '').replace('<interjection_end>', '')
+                text = text.replace('<poi_begin>', '').replace('<poi_end>', '')
+
+
                 if text:
-                    if debug:
-                        speech = pd.DataFrame({'speaker': [current_speaker], 
-                                               'party': [current_party], 
-                                               'speech': [text], 
-                                               'seq': [seq],
-                                               'sub': [sub],
-                                               'exec': current_executive,
-                                               'servant': current_servant,
-                                               'wp': wp,
-                                               'session': session,
-                                               'president': current_president,
-                                               'role': [current_role],
-                                               'state': [STATE],
-                                               'interjection': interjection,
-                                               'date': [date]})
-                        speeches.append(speech)
-
-                        ls_text_length.append([text_length, wp, session, seq, sub, current_speaker, text])
-
-                    else:
-
-                        speech_dict = {'speaker': current_speaker,
+                    speech = pd.DataFrame({'speaker': [current_speaker], 
+                                           'party': [current_party], 
+                                           'speech': [text], 
+                                           'seq': [seq],
+                                           'sub': [sub],
+                                           'executive': current_executive,
+                                           'servant': current_servant,
+                                           'wp': wp,
+                                           'session': session,
+                                           'president': current_president,
+                                           'ministerium': [current_ministerium],
+                                           'role': [current_role],
+                                           'state': [STATE],
+                                           'interjection': interjection,
+                                           'date': [date],
+                                           'issue': issue})
+                    speeches.append(speech)
+                    speech_dict = {'speaker': current_speaker,
                                        'party': current_party,
                                        'speech': text,
                                        'seq': seq,
@@ -268,32 +332,17 @@ for filename in files[:10]:
                                        'wp': wp,
                                        'session': session,
                                        'president': current_president,
+                                       'ministerium': current_ministerium,
                                        'role': current_role,
                                        'state': STATE,
                                        'interjection': interjection,
-                                       'date': date}
-                        #table.insert(speech_dict)
+                                       'identation': identation,
+                                       'date': date,
+                                       'issue': issue}
 
-                    if 'Zwischenfrage' in text and current_president:
-                        # import pdb; pdb.set_trace()
-                        zwischenfrage = True
-                        speaker_cnt = 0
-                        antwort_s = s
-                        antwort_speaker = new_speaker
-                        antwort_party = party
-                        antwort_executive = executive
-                        antwort_servant = servant
-                        antwort_president = president
-                        antwort_role = role
-                    if zwischenfrage:
-                        # pdb.set_trace()
-                        speaker_cnt += 1
-
+                    #table.insert(speech_dict)
+                    ls_text_length.append([text_length, wp, session, seq, sub, current_speaker, text])
                 # stops iterating over lines, if end of session is reached e.g. Schluss: 17:16 Uhr
-                if END_MARK.search(line):
-                    in_session = False
-                    print('reached end of session')
-                    break
                 # to know order of speech within a given plenary session
                 seq += 1
                 # resets sub counter (for parts of one speech: speakers' parts and interjections)
@@ -301,108 +350,116 @@ for filename in files[:10]:
                 sub = 0
                 # resets current_speaker for next speech
                 current_speaker = None
+            elif (new_speaker!=current_speaker or END_MARK.search(line) or not has_more) and interjection:
+                endend_with_interjection = True
+                # to know order of speech within a given plenary session
+                #seq += 1
+                # resets sub counter (for parts of one speech: speakers' parts and interjections)
+                # for next speech
+                #sub = 0
+            if END_MARK.search(line):
+                in_session = False
+                break
         # adds interjections to the data in such a way that order is maintained
-        if INTERJECTION_MARK.match(line) and not interjection:
-            # skips lines that start with brackes for abbreviations at the beginning of line e.g. '(EU) Drucksache [...]'
-            if NO_INTERJECTION.match(line):
-                print('NO INTERJECTION?' + line)
-            else:
-                # variable contains the number of lines an interjection covers
-                interjection_length = 0
-                # saves speech of speaker until this very interjection
-                if not interjection_complete and current_speaker is not None:
-                    text_length = len(text)
-                    text = helper.joins_cleans_text(text)
-                    text = re.sub('-(?=[a-z])', '', text)
-                    if text:
-                        if debug:
-                            speech = pd.DataFrame({'speaker': [current_speaker], 
-                                                   'party': [current_party], 
-                                                   'speech': [text], 
-                                                   'seq': [seq],
-                                                   'sub': [sub],
-                                                   'exec': current_executive,
-                                                   'servant': current_servant,
-                                                   'wp': wp,
-                                                   'session': session,
-                                                   'president': current_president,
-                                                   'role': [current_role],
-                                                   'state': [STATE],
-                                                   'interjection': interjection,
-                                                   'date': date})
-                            speeches.append(speech)
-                            ls_text_length.append([text_length, wp, session, seq, sub, current_speaker, text])
+        if INTERJECTION_MARK.match(line) and not interjection and not '<poi_begin>' in line:
 
-
-                        else:
-                            speech_dict = {'speaker': current_speaker,
-                                           'party': current_party,
-                                           'speech': text,
-                                           'seq': seq,
-                                           'sub': sub,
+        # skips lines that start with brackes for abbreviations at the beginning of line e.g. '(EU) Drucksache [...]'
+            # variable contains the number of lines an interjection covers
+            interjection_length = 0
+            # saves speech of speaker until this very interjection
+            if not interjection_complete and current_speaker is not None:
+                text_length = len(text)
+                # joins list elements of strings
+                text = ''.join(text)
+                # removes whitespace duplicates
+                text = re.sub(' +', ' ', text)
+                # removes whitespaces at the beginning and end
+                text = text.strip()
+                text = re.sub('-(?=[a-z])', '', text)
+                text = text.replace('<interjection_begin>', '').replace('<interjection_end>', '')
+                text = text.replace('<poi_begin>', '').replace('<poi_end>', '')
+                if text:
+                    speech = pd.DataFrame({'speaker': [current_speaker], 
+                                           'party': [current_party], 
+                                           'speech': [text], 
+                                           'seq': [seq],
+                                           'sub': [sub],
                                            'executive': current_executive,
                                            'servant': current_servant,
                                            'wp': wp,
                                            'session': session,
                                            'president': current_president,
-                                           'role': current_role,
-                                           'state': STATE,
+                                           'ministerium': [current_ministerium],
+                                           'role': [current_role],
+                                           'state': [STATE],
                                            'interjection': interjection,
-                                           'date': date}
-                            #table.insert(speech_dict)
+                                           'date': date,
+                                           'issue': issue})
+                    speeches.append(speech)
+                    speech_dict = {'speaker': current_speaker,
+                                       'party': current_party,
+                                       'speech': text,
+                                       'seq': seq,
+                                       'sub': sub,
+                                       'executive': current_executive,
+                                       'servant': current_servant,
+                                       'wp': wp,
+                                       'session': session,
+                                       'president': current_president,
+                                       'ministerium': current_ministerium,
+                                       'role': current_role,
+                                       'state': STATE,
+                                       'interjection': interjection,
+                                       'identation': identation,
+                                       'date': date,
+                                       'issue': issue}
 
-                #
-                sub += 1
-                interjection = True
-                interjection_text = []
-        # special case: interjection
+                    #table.insert(speech_dict)
+                    ls_text_length.append([text_length, wp, session, seq, sub, current_speaker, text])
+
+            #
+            sub += 1
+            interjection = True
+            interjection_text = []
+    # special case: interjection
         if interjection:
-            # variables contain opening and closing brackets to ensure equality.
-            # one measure to determin the end of an interjection
-            cnt_brackets_opening += line.count('(')
-            cnt_brackets_closing += line.count(')')
-            
-            # ensures that there is no whitespace at the end of an interjection instead of a closing bracket
-            if ')' in line:
-                line = line.rstrip()
-
-            # signals end of interjection
             # either line ends with ')' and opening and closing brackets are equal or we had two empty lines in a row
-            if cnt_brackets_opening<=cnt_brackets_closing or CHAIR_MARK.match(line):
+            if not '<interjection_begin>' in line and line and not line.isspace() or INTERJECTION_END.search(line):
                 # to avoid an error, if interjection is at the beginning without anybod have started speaking
                 # was only relevant for bavaria so far.
                 if current_speaker is not None:
-                    interjection_text.append(line)
-                    #interjection_text = [i + ' ' for i in interjection_text if not i.endswith('-')]
+                    if INTERJECTION_END.search(line):
+                        interjection_text.append(line)
+                    # interjection_text.append(line)
+                    interjection_text = [i.replace('-', '').rstrip() if i.rstrip().endswith('-') else i + ' ' for i in interjection_text]
                     interjection_text = ''.join(interjection_text)
+                    # if 'Das sind aber zwei' in interjection_text:
+                       # import pdb; pdb.set_trace()
                     # removes whitespace duplicates
                     interjection_text = re.sub(' +', ' ', interjection_text)
                     # removes whitespaces at the beginning and end
                     interjection_text = interjection_text.strip()
                     interjection_text = re.sub('-(?=[a-z])', '', interjection_text)
-
-                    if debug:
-
+                    interjection_text = interjection_text.replace('<interjection_begin>', '').replace('<interjection_end>', '')
+                    interjection_text = interjection_text.replace('<poi_begin>', '').replace('<poi_end>', '')
+                    if interjection_text:
                         speech = pd.DataFrame({'speaker': [current_speaker], 
-                                               'party': [current_party], 
-                                               'speech': [interjection_text], 
-                                               'seq': [seq],
-                                               'sub': [sub],
-                                               'exec': current_executive,
-                                               'servant': current_servant,
-                                               'wp': wp,
-                                               'session': session,
-                                               'president': current_president,
-                                               'role': [current_role],
-                                               'state': [STATE],
-                                               'interjection': [interjection],
-                                               'date': date})
-
+                                           'party': [current_party], 
+                                           'speech': [interjection_text], 
+                                           'seq': [seq],
+                                           'sub': [sub],
+                                           'executive': current_executive,
+                                           'servant': current_servant,
+                                           'wp': wp,
+                                           'session': session,
+                                           'president': current_president,
+                                           'ministerium': [current_ministerium],
+                                           'role': [current_role],
+                                           'state': [STATE],
+                                           'interjection': [interjection],
+                                           'date': date,
+                                           'issue': issue})
                         speeches.append(speech)
-                        ls_interjection_length.append([interjection_length, wp, session, seq, sub, current_speaker, interjection_text])
-
-                    else:
-
                         speech_dict = {'speaker': current_speaker,
                                        'party': current_party,
                                        'speech': interjection_text,
@@ -413,96 +470,87 @@ for filename in files[:10]:
                                        'wp': wp,
                                        'session': session,
                                        'president': current_president,
+                                       'ministerium': current_ministerium,
                                        'role': current_role,
                                        'state': STATE,
                                        'interjection': interjection,
-                                       'date': date}
+                                       'identation': identation,
+                                       'date': date,
+                                       'issue': issue}
 
                         #table.insert(speech_dict)
-
                     sub += 1
                     interjection_length += 1
+                    ls_interjection_length.append([interjection_length, wp, session, seq, sub, current_speaker, interjection_text])
                 interjection = False
                 interjection_complete = True
                 interjection_skip = False
                 cnt_brackets_opening = 0
                 cnt_brackets_closing = 0
-                continue
             else:
-                interjection_text.append(helper.cleans_line(line))
-                interjection_length += 1
+                line = line.replace('<interjection_begin>', '').replace('<interjection_end>', '')
+                if line and not line.isspace():
+                    interjection_text.append(line)
+                    interjection_length += 1
                 continue
-        if current_speaker is not None:
+        if current_speaker is not None and not endend_with_interjection:
             if interjection_complete:
                 interjection_complete = None
                 text = []
-                line = helper.cleans_line(line)
-                text.append(line)
+                if line and not line.isspace() and not INTERJECTION_END.search(line):
+                    line = helper.cleans_line(line)
+                    text.append(line)
                 continue
             else:
-            #if debug:
-            #    import pdb; pdb.set_trace()
-                # if dotNotOnFirstLine:
-                #     if ":* " in line:
-                #         parts = line.split(':* ', 1)
-                #         line = parts[-1]
-                #         current_role = ''.join([current_role, parts[0]]).replace(')', '')
-                #         dotNotOnFirstLine = False
-                #     elif ":" in line:
-                #         parts = line.split(':', 1)
-                #         line = parts[-1]
-                #         current_role = ''.join([current_role, parts[0]]).replace(')', '')
-                #         dotNotOnFirstLine = False
-                #     elif line.isspace():
-                #         current_role = current_role.replace(')', '')
-                #         dotNotOnFirstLine = False
-                #     else:
-                #         current_role = ''.join([current_role, line])
-                #         line = ''
                 current_role = current_role.strip()
 
                 line = helper.cleans_line(line)
-                text.append(line)
+                if line and not line.isspace():
+                    text.append(line)
                 continue
 
         if s is not None:
-            #if debug:
-            #    import pdb; pdb.set_trace()
-            #role = s.group(1)
-            # dotNotOnFirstLine = False
             if ":* " in line:
                 line = line.split(':* ', 1)[-1]
             elif ":" in line:
                 line = line.split(':', 1)[-1]
-            # else:
-            #     line = ''
-            #     dotNotOnFirstLine = True
             line = helper.cleans_line(line)
             text = []
-            text.append(line)
+            if line and not line.isspace():
+                text.append(line)
             current_speaker = new_speaker
             current_party = party
             current_president = president
             current_executive = executive
             current_servant = servant
             current_role = role
+            current_ministerium = ministerium
+            endend_with_interjection = False
+            interjection_complete = None
         if not has_more and in_session:
             print(str(wp) + ' ' + str(session) + ' : no match for end mark -> error')
 
-    if debug:
-        pd_session_speeches = pd.concat(speeches)
-        ls_speeches.append(pd_session_speeches)
+    pd_session_speeches = pd.concat(speeches)
+    print(str(pd_session_speeches.seq.max()) + ' speeches detected and ' + str(pd_session_speeches.loc[pd_session_speeches.interjection==True].interjection.count()) + ' interjections')
+    ls_speeches.append(pd_session_speeches)
+    
+    session_descriptives = pd.DataFrame({'date': [date],
+                                    'wp': [wp],
+                                    'session': [session],
+                                    'n_speeches': [int(pd_session_speeches.seq.max())],
+                                    'n_interruptions': [int(pd_session_speeches.loc[pd_session_speeches.interjection==True].interjection.count())]})
+    log_sessions.append(session_descriptives)
 
-if debug:
-    pd_speeches = pd.concat(ls_speeches).reset_index()
-    pd_speeches.to_csv('sh_test.csv')
+pd_speeches = pd.concat(ls_speeches).reset_index()
+pd_log_sessions = pd.concat(log_sessions).reset_index()
+
+#pd_speeches.to_csv(os.path.join(DATA_PATH, STATE + '_test.csv'))
 
 # checks
 # interjection length
-if debug:
-    idx = [i for i, e in enumerate(ls_interjection_length) if e[0] >= 5]
+idx = [i for i, e in enumerate(ls_interjection_length) if e[0] > 10]
 
-    #text length
-    idx_txt = [i for i, e in enumerate(ls_text_length[0:10]) if e[0] > 50]
+#text length
+idx_txt = [i for i, e in enumerate(ls_text_length) if e[0] > 250]
 
-    pd_speeches.loc[:, ['wp', 'session', 'seq']].groupby(['wp', 'session']).max()
+pd_speeches.loc[:, ['wp', 'session', 'seq']].groupby(['wp', 'session']).max()
