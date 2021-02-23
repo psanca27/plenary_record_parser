@@ -40,7 +40,7 @@ ministers_wp19 = ['Daniel Günther', 'Sütterlin-Waack', 'Karin Prien', 'Hans-Jo
 BEGIN_STRING = r'^(<poi_begin>)?Beginn(.*?)?:?\s+(.*?)?(?:Beginn\s+)?[0-9]{1,2}[.:][0-9]{1,2}'
 END_STRING = r'^(<poi_begin>)?Schluss:\s+[0-9]{1,2}[.:][0-9]{1,2}'
 CHAIR_STRING = r'^<poi_begin>\s?(Alterspräsident(?:in)?|Präsident(?:in)?|Vizepräsident(?:in)?)\s+(.+?):'
-EXECUTIVE_STRING = r'^<poi_begin>(.*?)\,?<poi_end>\,?\s+(Ministerpräsident(?:in)?:|Minister(?:in)?\s+für\s+(\w+)|Justizminister(?:in)?:|Finanzminister(?:in)?:|Innenminister(?:in)?:)'
+EXECUTIVE_STRING = r'^<poi_begin>(.*?)(\,\s*?<poi_end>\s*?|\s*?<poi_end>\s*?\,\s*?)(Ministerpräsident(?:in)?:|Minister(?:in)?\s+für\s+(\w+)|Justizminister(?:in)?:|Finanzminister(?:in)?:|Innenminister(?:in)?:)'
 SPEAKER_STRING = r'^<poi_begin>(.+?)\s*?\[(AfD|CDU|SPD|F\.?D\.?P\.?|SSW|PIRATEN|BÜNDNIS\s+90\/DIE(?:\s+GRÜ(?:\-|NEN|fraktionslos))?)\]?(?:,\s+Berichterstatter(?:in)?)?'
 OFFICIALS_STRING = r'^Staatssekretär(?:in)?\s+(?P<speaker1>.+?):|^(?P<speaker2>.+?)\,\s+Staatssekretär(?:in)?'
 
@@ -230,7 +230,7 @@ for filename in files:
                     ministerium = re.sub('[If]\S+r', 'für', ministerium)
                 else:
                     new_speaker = re.sub(' +', ' ', s.group(1))
-                    ministerium = re.sub(' +', ' ', s.group(2)).replace(':', '').replace("<poi_end>", '').strip()
+                    ministerium = re.sub(' +', ' ', s.group(3)).replace(':', '').replace("<poi_end>", '').strip()
                 role = 'executive'
                 party = None
                 president = False
@@ -266,7 +266,6 @@ for filename in files:
                 ministerium = None
             else:
                 if SPEECH_CONTINUTATION_STRING.match(line):
-                    print(line)
                     line = ''
                 elif POI_ONE_LINER.match(line):
                     issue = POI_ONE_LINER.match(line).group(1)
@@ -281,7 +280,7 @@ for filename in files:
                     poi = True
 
             if new_speaker:
-                new_speaker = new_speaker.replace(':', '').replace('<poi_end>', '').replace('<poi_begin>', '').replace('·', '').strip()
+                new_speaker = new_speaker.replace(':', '').replace('<poi_end>', '').replace('<poi_begin>', '').replace('·', '').replace('[CDU]', '').strip()
                 new_speaker = helper.clean_speaker_sh_14(new_speaker)
                 if party:
                     party = party.replace('F.D.P.', 'FDP')
