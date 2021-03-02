@@ -7,7 +7,7 @@ import pandas as pd
 
 
 
-DATA_PATH = r'../data/SH/'
+DATA_PATH = r'../data/BB/'
 
 
 with open(os.path.join(DATA_PATH, "c_x0.json"), encoding="utf-8") as fp:
