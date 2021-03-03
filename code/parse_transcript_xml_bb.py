@@ -77,30 +77,44 @@ def parseXML(xml_in, params, state):
         left =  [round(float(textbox.attrib["bbox"].split(',')[0:1][0])) for textbox in textboxes]
 
         left_margin = [i[0] for i in Counter(left).most_common(4)]
+        left.sort()
+        
+        text_margin_first_left = left[0] + 2
+        indentation_bound_first_left = left[0] + 22
+        text_margin_first_right = left[0] + 257
+        indentation_bound_first_right = left[0] + 277
+        
+        if text_margin_first_left < 50 or text_margin_first_left > 63:
+            logging.warning('text margin left seems a bit off ' + str(text_margin_first_left) + '; page' + page.attrib['id'])
 
-        cnt_set_one = 0
-        cnt_set_two = 0
+        
+        #print(page_id, text_margin_first_left, indentation_bound_first_left, text_margin_first_right, indentation_bound_first_right)
+        
+        if False:
+            cnt_set_one = 0
+            cnt_set_two = 0
 
-        for e in left_margin:
-            if (e in range(params["text_margin_first_left"] - 5, params["text_margin_first_left"] + 5) or
-                e in range(params["text_margin_first_right"] - 5, params["text_margin_first_right"] + 5) or
-                e in range(params["indentation_bound_first_left"] - 5, params["indentation_bound_first_left"] + 5) or
-                e in range(params["indentation_bound_first_right"] - 5, params["indentation_bound_first_right"] + 5)):
-                cnt_set_one += 1
-            if (e in range(params["text_margin_second_left"] - 3, params["text_margin_second_left"] + 3) or
-                e in range(params["text_margin_second_right"] - 3, params["text_margin_second_right"] + 3) or
-                e in range(params["indentation_bound_second_left"] - 3, params["indentation_bound_second_left"] + 3) or
-                e in range(params["indentation_bound_second_right"] - 3, params["indentation_bound_second_right"] + 3)):
-                cnt_set_two += 1
 
-        if cnt_set_one==0 and cnt_set_two==0:
-            logging.warning('no x0 values within specified ranges' + page.attrib['id'])
-            page_set = None
-        else:
-            if cnt_set_one > cnt_set_two:
-                page_set = 'first'
+            for e in left_margin:
+                if (e in range(params["text_margin_first_left"] - 6, params["text_margin_first_left"] + 6) or
+                    e in range(params["text_margin_first_right"] - 6, params["text_margin_first_right"] + 6) or
+                    e in range(params["indentation_bound_first_left"] - 6, params["indentation_bound_first_left"] + 6) or
+                    e in range(params["indentation_bound_first_right"] - 6, params["indentation_bound_first_right"] + 6)):
+                    cnt_set_one += 1
+                if (e in range(params["text_margin_second_left"] - 3, params["text_margin_second_left"] + 3) or
+                    e in range(params["text_margin_second_right"] - 3, params["text_margin_second_right"] + 3) or
+                    e in range(params["indentation_bound_second_left"] - 3, params["indentation_bound_second_left"] + 3) or
+                    e in range(params["indentation_bound_second_right"] - 3, params["indentation_bound_second_right"] + 3)):
+                    cnt_set_two += 1
+
+            if cnt_set_one==0 and cnt_set_two==0:
+                logging.warning('no x0 values within specified ranges' + page.attrib['id'])
+                page_set = None
             else:
-                page_set = 'second'
+                if cnt_set_one > cnt_set_two:
+                    page_set = 'first'
+                else:
+                    page_set = 'second'
 
         for textbox in textboxes:
             # get the boundaries of the textline
@@ -154,28 +168,44 @@ def parseXML(xml_in, params, state):
 
             # if '(Heiterkeit)' in textbox["text"]:
             #     import pdb; pdb.set_trace()
-            if page_set=='first':
-                if textbox['left'] > params["indentation_bound_first_left"] - 5 and textbox['left'] < params["text_margin_first_right"] - 5:
-                    textbox['text'] = '<interjection_begin>' + 'set1' + str(textbox['left']) + textbox['text'].replace('\n', '<interjection_end>\n<interjection_begin>') + '<interjection_end>'
-                elif textbox['left'] > params["indentation_bound_first_right"] - 5:
-                    textbox['text'] = '<interjection_begin>' + 'set1' +  str(textbox['left']) + textbox['text'].replace('\n', '<interjection_end>\n<interjection_begin>') + '<interjection_end>'
+            textbox['text'] = '<left_pos textbox:' + str(textbox['left']) + '>' + textbox['text']
+            
+            if textbox['left'] > indentation_bound_first_left - 5 and textbox['left'] < text_margin_first_right - 5:
+                textbox['text'] = '<interjection_begin>' + 'set1' + str(textbox['left']) + textbox['text'].replace('\n', '<interjection_end>\n<interjection_begin>') + '<interjection_end>'
+            elif textbox['left'] > indentation_bound_first_right - 5:
+                textbox['text'] = '<interjection_begin>' + 'set1' +  str(textbox['left']) + textbox['text'].replace('\n', '<interjection_end>\n<interjection_begin>') + '<interjection_end>'
 
-                if textbox['left'] < params['text_margin_first_right'] - 5:
-                    textbox['left'] = 30
-                else:
-                    textbox['left'] = 30
-                    textbox['top'] = textbox['top']-1000
-            elif page_set=='second':
-                if textbox['left'] > params["indentation_bound_second_left"] - 5 and textbox['left'] < params["text_margin_second_right"] - 5:
-                    textbox['text'] = '<interjection_begin>' + 'set2' + str(textbox['left']) + textbox['text'].replace('\n', '<interjection_end>\n<interjection_begin>') + '<interjection_end>'
-                elif textbox['left'] > params["indentation_bound_second_right"] - 5:
-                    textbox['text'] = '<interjection_begin>' + 'set2' + str(textbox['left']) + textbox['text'].replace('\n', '<interjection_end>\n<interjection_begin>') + '<interjection_end>'
+            if textbox['left'] < text_margin_first_right - 5:
+                textbox['left'] = 30
+            else:
+                textbox['left'] = 30
+                textbox['top'] = textbox['top']-1000
 
-                if textbox['left'] < params['text_margin_second_right'] - 5:
-                    textbox['left'] = 30
-                else:
-                    textbox['left'] = 30
-                    textbox['top'] = textbox['top']-1000
+            
+            
+            if False:
+                if page_set=='first':
+                    if textbox['left'] > params["indentation_bound_first_left"] - 5 and textbox['left'] < params["text_margin_first_right"] - 5:
+                        textbox['text'] = '<interjection_begin>' + 'set1' + str(textbox['left']) + textbox['text'].replace('\n', '<interjection_end>\n<interjection_begin>') + '<interjection_end>'
+                    elif textbox['left'] > params["indentation_bound_first_right"] - 5:
+                        textbox['text'] = '<interjection_begin>' + 'set1' +  str(textbox['left']) + textbox['text'].replace('\n', '<interjection_end>\n<interjection_begin>') + '<interjection_end>'
+
+                    if textbox['left'] < params['text_margin_first_right'] - 5:
+                        textbox['left'] = 30
+                    else:
+                        textbox['left'] = 30
+                        textbox['top'] = textbox['top']-1000
+                elif page_set=='second':
+                    if textbox['left'] > params["indentation_bound_second_left"] - 5 and textbox['left'] < params["text_margin_second_right"] - 5:
+                        textbox['text'] = '<interjection_begin>' + 'set2' + str(textbox['left']) + textbox['text'].replace('\n', '<interjection_end>\n<interjection_begin>') + '<interjection_end>'
+                    elif textbox['left'] > params["indentation_bound_second_right"] - 5:
+                        textbox['text'] = '<interjection_begin>' + 'set2' + str(textbox['left']) + textbox['text'].replace('\n', '<interjection_end>\n<interjection_begin>') + '<interjection_end>'
+
+                    if textbox['left'] < params['text_margin_second_right'] - 5:
+                        textbox['left'] = 30
+                    else:
+                        textbox['left'] = 30
+                        textbox['top'] = textbox['top']-1000
 
             page_text.append(textbox)
 
