@@ -84,7 +84,7 @@ def parseXML(xml_in, params, state):
         text_margin_first_right = left[0] + 257
         indentation_bound_first_right = left[0] + 277
         
-        if text_margin_first_left < 50 or text_margin_first_left > 63:
+        if (text_margin_first_left < 50 or text_margin_first_left > 63) and ((int(xml_in[11:12]) != 3 and (int(xml_in[13:16]) not in list([56,57]))) or int(xml_in[11:12]) != 4):
             logging.warning('text margin left seems a bit off ' + str(text_margin_first_left) + '; page' + page.attrib['id'])
 
         
@@ -158,22 +158,27 @@ def parseXML(xml_in, params, state):
             textbox_text = re.sub(' +', ' ', textbox_text.strip())
 
             # removes header/footer
-            if textbox_bounds[1]>params['header_bound'] and page_id not in ['1']:
-                #import pdb; pdb.set_trace()
-                print('removed header ' + textbox_text)
-                continue
+            if (int(xml_in[11:12]) == 3 and int(xml_in[13:16]) in list([56, 57, 75, 76, 82, 83, 84, 85, 89, 90, 90, 91, 92, 94, 95, 96, 97, 99, 100])) or int(xml_in[11:12]) == 4:
+                if textbox_bounds[1]>params['header_bound_2'] and page_id not in ['1']:
+                    #import pdb; pdb.set_trace()
+                    print('removed header ' + textbox_text)
+                    continue
+            else:
+                if textbox_bounds[1]>params['header_bound_1'] and page_id not in ['1']:
+                    #import pdb; pdb.set_trace()
+                    print('removed header ' + textbox_text)
+                    continue
 
             # save a description of the line
             textbox = {'left': textbox_bounds[0], 'top': textbox_bounds[1], 'text': textbox_text}
 
             # if '(Heiterkeit)' in textbox["text"]:
             #     import pdb; pdb.set_trace()
-            textbox['text'] = '<left_pos textbox:' + str(textbox['left']) + '>' + textbox['text']
             
             if textbox['left'] > indentation_bound_first_left - 5 and textbox['left'] < text_margin_first_right - 5:
-                textbox['text'] = '<interjection_begin>' + 'set1' + str(textbox['left']) + textbox['text'].replace('\n', '<interjection_end>\n<interjection_begin>') + '<interjection_end>'
+                textbox['text'] = '<interjection_begin>' + textbox['text'].replace('\n', '<interjection_end>\n<interjection_begin>') + '<interjection_end>'
             elif textbox['left'] > indentation_bound_first_right - 5:
-                textbox['text'] = '<interjection_begin>' + 'set1' +  str(textbox['left']) + textbox['text'].replace('\n', '<interjection_end>\n<interjection_begin>') + '<interjection_end>'
+                textbox['text'] = '<interjection_begin>' + textbox['text'].replace('\n', '<interjection_end>\n<interjection_begin>') + '<interjection_end>'
 
             if textbox['left'] < text_margin_first_right - 5:
                 textbox['left'] = 30
@@ -186,9 +191,9 @@ def parseXML(xml_in, params, state):
             if False:
                 if page_set=='first':
                     if textbox['left'] > params["indentation_bound_first_left"] - 5 and textbox['left'] < params["text_margin_first_right"] - 5:
-                        textbox['text'] = '<interjection_begin>' + 'set1' + str(textbox['left']) + textbox['text'].replace('\n', '<interjection_end>\n<interjection_begin>') + '<interjection_end>'
+                        textbox['text'] = '<interjection_begin>' + textbox['text'].replace('\n', '<interjection_end>\n<interjection_begin>') + '<interjection_end>'
                     elif textbox['left'] > params["indentation_bound_first_right"] - 5:
-                        textbox['text'] = '<interjection_begin>' + 'set1' +  str(textbox['left']) + textbox['text'].replace('\n', '<interjection_end>\n<interjection_begin>') + '<interjection_end>'
+                        textbox['text'] = '<interjection_begin>' + textbox['text'].replace('\n', '<interjection_end>\n<interjection_begin>') + '<interjection_end>'
 
                     if textbox['left'] < params['text_margin_first_right'] - 5:
                         textbox['left'] = 30
@@ -197,9 +202,9 @@ def parseXML(xml_in, params, state):
                         textbox['top'] = textbox['top']-1000
                 elif page_set=='second':
                     if textbox['left'] > params["indentation_bound_second_left"] - 5 and textbox['left'] < params["text_margin_second_right"] - 5:
-                        textbox['text'] = '<interjection_begin>' + 'set2' + str(textbox['left']) + textbox['text'].replace('\n', '<interjection_end>\n<interjection_begin>') + '<interjection_end>'
+                        textbox['text'] = '<interjection_begin>' + textbox['text'].replace('\n', '<interjection_end>\n<interjection_begin>') + '<interjection_end>'
                     elif textbox['left'] > params["indentation_bound_second_right"] - 5:
-                        textbox['text'] = '<interjection_begin>' + 'set2' + str(textbox['left']) + textbox['text'].replace('\n', '<interjection_end>\n<interjection_begin>') + '<interjection_end>'
+                        textbox['text'] = '<interjection_begin>' + textbox['text'].replace('\n', '<interjection_end>\n<interjection_begin>') + '<interjection_end>'
 
                     if textbox['left'] < params['text_margin_second_right'] - 5:
                         textbox['left'] = 30
