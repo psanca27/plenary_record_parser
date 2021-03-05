@@ -11,13 +11,15 @@ import pandas as pd
 from datetime import datetime
 
 #os.chdir('/Volumes/Datahouse/Users/Stipe/Documents/Studium/Master VWL/Masterarbeit/plenarprotokolle/code')
-os.chdir('/home/felix/privat/plenarprotokolle/code')
+os.chdir('../code')
+pd.options.display.max_rows = 500
+pd.options.display.max_colwidth = 150
 
 from lib import helper
 
 log = logging.getLogger(__name__)
 
-locale.setlocale(locale.LC_TIME, "de_DE.utf8")
+locale.setlocale(locale.LC_TIME, "de_DE")
 
 DATA_PATH = os.environ.get('DATA_PATH', '../data/BB')
 
@@ -28,19 +30,23 @@ MINISTERS_WP6 = ['Woidke', 'Görke', 'Schröter', 'Markov', 'Ludwig', 'Golze', '
                  'Gerber', 'Steinbach', 'Baaske', 'Ernst', 'Vogelsänger', 'Schneider', 'Kunst', 'Münch']
 
 # regular expressions to capture speeches of one session
-BEGIN_STRING = r'^(?:Beginn\s+der\s+Sitzung|\(Fortsetzung\s+der\s+Sitzung|Beginn\s+der\s+[0-9]{1,2}\.\s+Sitzung)(?::\s+(?:[0-9]{1,2}[.:][0-9]{1,2}|[0-9]{1,2})\s+Uhr|\s+am\s+[0-9]{1,2}\.)'
-END_STRING = r'^\(?(?:Ende|Schluss)\s+(?:der\s+)?(?:[0-9]{1,2}\.\s+)?Sitzung(?:\s+am\s+[0-9]{1,2}\.\s+.+?(?:\s+[0-9]{4})?)?:?\s+(?:[0-9]{1,2}[.:][0-9]{1,2}|[0-9]{1,2})\s+Uhr'
-CHAIR_STRING = r'^(Alterspräsident(?:in)?|Präsident(?:in)?|Vizepräsident(?:in)?)\s+(.+?):'
-SPEAKER_STRING = r'^(.+?)\s+\((.+?)\):'
+BEGIN_STRING = r'^(<poi_begin>)?s*?(?:Beginn\s+der\s+Sitzung|\(Fortsetzung\s+der\s+Sitzung|Beginn\s+der\s+[0-9]{1,2}\.\s+Sitzung)(?::\s+(?:[0-9]{1,2}[.:][0-9]{1,2}|[0-9]{1,2})\s+Uhr|\s+am\s+[0-9]{1,2}\.)'
+END_STRING = r'^(<poi_begin>)?s*?\(?(?:Ende|Schluss)\s+(?:der\s+)?(?:[0-9]{1,2}\.\s+)?Sitzung(?:\s+am\s+[0-9]{1,2}\.\s+.+?(?:\s+[0-9]{4})?)?:?\s+(?:[0-9]{1,2}[.:][0-9]{1,2}|[0-9]{1,2})\s+Uhr'
+CHAIR_STRING = r'^(<poi_begin>)?s*?(Alterspräsident(?:in)?|Präsident(?:in)?|Vizepräsident(?:in)?)\s+(.+):'
+SPEAKER_STRING = r'^(<poi_begin>)?s*?(.+?)\s+(?:<poi_end>)?(?:<poi_begin>)?\((.+?)\)(?:<poi_end>)?:'
 COMMITTEE_STRING = r'^(.+?)\s+\((Vorsitzender?\s+(?:des|der)\s+(Haupt|Untersuchungs|Petitions)?(?:[Aa]usschusses|Enquetekommission).+)'
-EXECUTIVE_STRING_SHORT = r'(?:Ministerpräsident(?:in)?|Minister(?:in)?)\s+(.+?):'
-EXECUTIVE_STRING_LONG = r'^(?:Minister(?:in)?)\s+((?:für|der|des\s+Innern)\s+.+)'
+EXECUTIVE_STRING_SHORT = r'^(<poi_begin>)?s*?(Ministerpräsident(?:in)?|Minister(?:in)?)\s+(.+?):'
+EXECUTIVE_STRING_LONG = r'^(<poi_begin>)?s*?(Minister(?:in)?)\s+((?:für|der|des\s+Innern)\s+.+)'
 EXECUTIVE_STOP_CHARACTERS_STRING = r'[,]'
-OFFICIALS_STRING = r'^(Staatssekretär(?:in)?)\s+(?:(.+?):|(im.+))'
-LAKD_STRING = r'^(.+?)\s+\(LAkD'
-DATA_PROTECTION_STRING = r'^(.+?)\s+\(Landesbeauftragter?\s+für'
-LRH_STRING = r'^(?:Herr\s+)?Weiser\s+\(Präsident\s+des\s+Landesrechnungshofes|Präsident\s+des\s+Landesrechnungshofe?s\s+Weiser'
-SORBEN_STRING = r'^(.+?)\s+\(Rat\s+für\s+sorbische/wendische Angelegenheiten'
+OFFICIALS_STRING = r'^(<poi_begin>)?s*?(Staatssekretär(?:in)?)\s+(?:(.+?):|(im.+))'
+LAKD_STRING = r'^(<poi_begin>)?s*?(.+?)\s+\(LAkD'
+DATA_PROTECTION_STRING = r'^(<poi_begin>)?s*?(.+?)\s+\(Landesbeauftragter?\s+für'
+LRH_STRING = r'^(<poi_begin>)?s*?(?:Herr\s+)?Weiser\s+\(Präsident\s+des\s+Landesrechnungshofes|Präsident\s+des\s+Landesrechnungshofe?s\s+Weiser'
+SORBEN_STRING = r'^(<poi_begin>)?s*?(.+?)\s+\(Rat\s+für\s+sorbische/wendische Angelegenheiten'
+SPEECH_CONTINUTATION_STRING = re.compile(r'^(<poi_begin>)?\(.*?\)\s?(<poi_end>)?')
+POI_ONE_LINER = re.compile(r'(.+?)?<poi_end>(?:.+)?')
+
+
 
 #Ziel (Vorsitzender des Ausschusses für Haushaltskontrolle): *
 
@@ -53,6 +59,7 @@ END_MARK = re.compile(END_STRING)
 CHAIR_MARK = re.compile(CHAIR_STRING)
 SPEAKER_MARK = re.compile(SPEAKER_STRING)
 COMMITTEE_MARK = re.compile(COMMITTEE_STRING)
+EXECUTIVE_MARK = re.compile(EXECUTIVE_STRING_SHORT)
 EXECUTIVE_MARK_SHORT = re.compile(EXECUTIVE_STRING_SHORT)
 EXECUTIVE_MARK_LONG = re.compile(EXECUTIVE_STRING_LONG)
 EXECUTIVE_STOP_CHARACTERS = re.compile(EXECUTIVE_STOP_CHARACTERS_STRING)
@@ -62,8 +69,8 @@ LAKD_MARK = re.compile(LAKD_STRING)
 DATA_PROTECTION_MARK = re.compile(DATA_PROTECTION_STRING)
 SORBEN_MARK = re.compile(SORBEN_STRING)
 #SPEECH_ENDS = re.compile("|".join([CHAIR_STRING, SPEAKER_STRING, EXECUTIVE_STRING, OFFICIALS_STRING]))
-INTERJECTION_MARK = re.compile(r'^\(')
-INTERJECTION_END = re.compile(r'\)')
+INTERJECTION_MARK = re.compile(r'^<interjection_begin>\(')
+INTERJECTION_END = re.compile(r'.+\)<interjection_end>$')
 NO_INTERJECTION = re.compile(r'\){2,10}')
 HEADER_MARK = re.compile(r'^Landtag\s+Brandenburg\s+-\s+[0-9](?:\s+|\.)\s+Wahlperiode')
 HEADER_SPEAKER_MARK = re.compile(r'\((?:Abg\.)|\(Alterspräsident(?:in)?|\(Präsident(?:in)?|\(Vizepräsident(?:in)?|\(Staatssekretär(?:in)?|\(Minister(?:in)?|\(Justizminister(?:in)?:|\(Finanzminister(?:in):|\(Innenminister(?:in)?|\(Ministerpräsident(?:in)?')
@@ -73,9 +80,9 @@ STATE = 'BB'
 ls_speeches = []
 files = sorted([os.path.join(dp, f) for dp, dn, fn in os.walk(os.path.expanduser(DATA_PATH)) for f in fn if f.endswith(".txt")])
 
-db = os.environ.get('DATABASE_URI', 'sqlite:///../data/data.sqlite')
-eng = dataset.connect(db)
-table = eng['de_landesparlamente_plpr']
+#db = os.environ.get('DATABASE_URI', 'sqlite:///../data/data.sqlite')
+#eng = dataset.connect(db)
+#table = eng['de_landesparlamente_plpr']
 
 #def to clean  up names; might be useful. originally used for each identified speaker as e.g.:
 #new_speaker = strips_line_down_2_speaker(new_speaker, wp, date).replace('Frisch', 'Fritsch')
@@ -162,15 +169,21 @@ def cleans_party_names(party):
     party = party.replace('FPD', 'FDP').replace('Die LINKE', 'DIE LINKE').replace('fraktionlos', 'fraktionslos')
     return(party)
 
+
+
+
+ls_speeches = []
 ls_interjection_length = []
 ls_text_length = []
+ls_interjection_length = []
+log_sessions = []
 
 # debug mode
 debug = True
 
-for filename in files:
+for filename in files[:6]:
 
-    wp, session, date = int(filename[23:24]), int(filename[25:28]), None
+    wp, session, date = int(filename[11:12]), int(filename[13:16]), None
     print(wp, session)
 
     with open(filename, 'rb') as fh:
@@ -243,7 +256,7 @@ for filename in files:
         #pdb.set_trace()
         # to avoid whitespace before interjections; like ' (Heiterkeit bei SPD)'
         line = line.lstrip()
-        line = helper.clean_line_sh_14(line)
+        #line = helper.clean_line_sh_14(line)
 
         # grabs date, goes to next line until it is captured
         if not date_captured and DATE_CAPTURE.search(line):
@@ -281,10 +294,10 @@ for filename in files:
                 issue = issue + ' ' + line
 
         # detects speaker, if no interjection is found:
-        if '<poi_begin>' in line or wp ==14:
+        if '<poi_begin>' in line or wp ==3:
             if CHAIR_MARK.match(line):
                 s = CHAIR_MARK.match(line)
-                if wp == 14:
+                if wp == 3:
                     new_speaker = re.sub(' +', ' ', s.group(2)) +  ' ' + re.sub(' +', ' ', s.group(3))
                 else:
                     new_speaker = re.sub(' +', ' ', s.group(1)) +  ' ' + re.sub(' +', ' ', s.group(2))
@@ -297,13 +310,14 @@ for filename in files:
                 ministerium = None
             elif EXECUTIVE_MARK.match(line):
                 s = EXECUTIVE_MARK.match(line)
-                if wp == 14:
-                    new_speaker = re.sub(' +', ' ', s.group(2))
-                    ministerium = re.sub(' +', ' ', s.group(3)).replace(':', '').replace("<poi_end>", '').strip()
-                    ministerium = re.sub('[If]\S+r', 'für', ministerium)
+                if wp == 3:
+                    new_speaker = re.sub(' +', ' ', s.group(2)) + ' ' + re.sub(' +', ' ', s.group(3))
+                    ministerium = 'interstellar affairs'
+                    #ministerium = re.sub(' +', ' ', s.group(3)).replace(':', '').replace("<poi_end>", '').strip()
+                    #ministerium = re.sub('[If]\S+r', 'für', ministerium)
                 else:
                     new_speaker = re.sub(' +', ' ', s.group(1))
-                    ministerium = re.sub(' +', ' ', s.group(3)).replace(':', '').replace("<poi_end>", '').strip()
+                    #ministerium = re.sub(' +', ' ', s.group(3)).replace(':', '').replace("<poi_end>", '').strip()
                 role = 'executive'
                 party = None
                 president = False
@@ -312,7 +326,8 @@ for filename in files:
                 poi_prev = False
             elif OFFICIALS_MARK.match(line):
                 s = OFFICIALS_MARK.match(line)
-                new_speaker = re.sub(' +', ' ', s.group(1)) +  ' ' + re.sub(' +', ' ', s.group(2))
+                new_speaker = str(s)
+                #new_speaker = re.sub(' +', ' ', s.group(1)) +  ' ' + re.sub(' +', ' ', s.group(2))
                 party = None
                 president = False
                 executive = False
@@ -322,15 +337,15 @@ for filename in files:
                 ministerium = None
             elif SPEAKER_MARK.match(line):
                 s = SPEAKER_MARK.match(line)
-                if wp == 14:
+                if wp == 3:
                     new_speaker = re.sub(' +', ' ', s.group(2)).rstrip(')').rstrip('*')                    
                 else:
                     new_speaker = re.sub(' +', ' ', s.group(1)).rstrip(')').rstrip('*')
                 president = False
                 executive = False
                 servant = False
-                if wp == 14:
-                    party = s.group(4)
+                if wp == 3:
+                    party = s.group(3)
                     party = re.sub(' +', '', party)
                 else:
                     party = s.group(2)
@@ -354,12 +369,17 @@ for filename in files:
 
             if new_speaker:
                 new_speaker = new_speaker.replace(':', '').replace('<poi_end>', '').replace('<poi_begin>', '').replace('·', '').replace('[CDU]', '').strip()
-                new_speaker = helper.clean_speaker_sh_14(new_speaker)
+                new_speaker = helper.clean_speaker_bb(new_speaker, wp)
+
                 if party:
                     party = party.replace('F.D.P.', 'FDP')
                     if 'BÜNDNIS' in party or 'BüNDNIS' in party:
                         party = 'GRÜNE'
                     party = party.replace(':', '')
+                    
+            if executive:
+                new_speaker, ministerium = helper.minister_handler(new_speaker, wp)
+                
 
         # saves speech, if new speaker is detected:
         if s is not None and current_speaker is not None:

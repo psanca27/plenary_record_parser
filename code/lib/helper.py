@@ -518,7 +518,7 @@ def ministerium_st(ministerium):
         ministerium = 'Gesundheit und Soziales'        
             
     return ministerium
-
+#mv
 def adjust_names_mv(new_speaker):
     if new_speaker == 'R e i n h a r d t T h o m a s':
         new_speaker = 'Reinhardt Thomas'
@@ -538,7 +538,7 @@ def adjust_names_mv(new_speaker):
     return new_speaker
 
 
-
+#sh
 def clean_line_sh_14(line):
     line = line.replace("\'Oll", 'von')
     line = line.replace("\Oll", 'von')
@@ -589,4 +589,45 @@ def clean_speaker_sh_14(speaker):
         speaker = 'Herlich Marie Todsen-Reese'
     elif 'Kubicki' in speaker:
         speaker = 'Wolfgang Kubicki'    
+    return speaker
+
+
+
+#bb
+#ministers
+def minister_handler(speaker, wp):
+    ministerium = ''
+    if wp == 3:
+        if 'Fürniß' in speaker:
+            speaker = 'Minister Dr. Fürniß'
+            ministerium = 'Wirtschaft'
+        elif 'Meyer' in speaker:
+            speaker = 'Minister Meyer'
+            ministerium = 'Stadtentwicklung, Wohnen und Verkehr'
+        elif 'Birthler' in speaker:
+            speaker = 'Minister Birthler'
+            ministerium = 'Landwirtschaft, Umweltschutz und Raumordnung'
+        elif 'Reiche' in speaker:
+            speaker = 'Minister Reiche'
+            ministerium = 'Bildung, Jugend und Sport'
+        elif 'Hackel' in speaker:
+            speaker = 'Minister Dr. Hackel'
+            ministerium = 'Wissenschaft, Forschung und Kultur'
+        elif 'Ziel' in speaker:
+            speaker = 'Minister Ziel'
+            ministerium = 'Arbeit, Soziales, Gesundheit und Frauen'
+    return speaker, ministerium
+        
+
+#
+def clean_speaker_bb(speaker, wp):
+    if wp == 3:        
+        if 'Schippe' in speaker:
+            speaker = 'Schippel'
+        elif 'Knnblich' in speaker:
+            speaker = 'Präsident Dr. Knoblich'
+        elif 'Kneblich' in speaker:
+            speaker = 'Präsident Dr. Knoblich'
+        elif 'Birthier' in speaker:
+            speaker = 'Minister Birthler'
     return speaker
