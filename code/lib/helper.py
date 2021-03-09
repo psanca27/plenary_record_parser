@@ -595,7 +595,7 @@ def clean_speaker_sh_14(speaker):
 
 #bb
 #ministers
-def minister_handler(speaker, wp):
+def minister_handler_bb(speaker, wp):
     ministerium = ''
     if wp == 3:
         if 'Birthler' in speaker or 'Landwirtschaft' in speaker:
@@ -607,9 +607,6 @@ def minister_handler(speaker, wp):
         elif 'Hackel' in speaker or 'Wissenschaft' in speaker:
             speaker = 'Minister Dr. Hackel'
             ministerium = 'Wissenschaft, Forschung und Kultur'
-        elif 'Mentrup' in speaker :
-            speaker = 'Staatssekretär Dr. Mentrup'           
-            ministerium = 'Finanzen'
         elif 'Meyer' in speaker or 'Stadtentwicklung' in speaker:
             speaker = 'Minister Meyer'           
             ministerium = 'Stadtentwicklung, Wohnen und Verkehr'
@@ -630,7 +627,44 @@ def minister_handler(speaker, wp):
             ministerium = 'Arbeit, Soziales, Gesundheit und Frauen'
         
     return(speaker, ministerium)
+
+
+def statesec_handler_bb(speaker, wp):
+    ministerium = ''
+    if wp == 3:
+        if 'somebody' in speaker or 'Landwirtschaft' in speaker:
+            speaker = ''
+            ministerium = 'Landwirtschaft, Umweltschutz und Raumordnung'
+        elif 'somebody' in speaker:
+            speaker = ''
+            ministerium = 'Wirtschaft'
+        elif 'somebody' in speaker or 'Wissenschaft' in speaker:
+            speaker = ''
+            ministerium = 'Wissenschaft, Forschung und Kultur'
+        elif 'Mentrup' in speaker:
+            speaker = 'Staatssekretär Dr. Mentrup'           
+            ministerium = 'Finanzen'
+        elif 'somebody' in speaker or 'Stadtentwicklung' in speaker:
+            speaker = ''           
+            ministerium = 'Stadtentwicklung, Wohnen und Verkehr'
+        elif 'somebody' in speaker or 'Bildung' in speaker:
+            speaker = ''
+            ministerium = 'Bildung, Jugend und Sport'
+        elif 'somebody' in speaker or 'Justiz' in speaker:
+            speaker = ''
+            ministerium = 'Justiz und für Europaangelegenheiten'
+        elif 'somebody' in speaker:
+            speaker = ''
+            ministerium = 'Innern'
+        elif 'somebody' in speaker:
+            speaker = ''
+            ministerium = 'Finanzen'
+        elif 'somebody' in speaker or 'Arbeit' in speaker:
+            speaker = ''
+            ministerium = 'Arbeit, Soziales, Gesundheit und Frauen'
         
+    return(speaker, ministerium)
+
 
 #
 def clean_speaker_bb(speaker, wp):
@@ -658,8 +692,6 @@ def clean_speaker_bb(speaker, wp):
 
 def clean_line_bb(line):
     if 'Nlinister' in line:
-        line = line.replace('Nlinister', 'Minister')
-    elif 'Nlinister' in line:
         line = line.replace('Nlinister', 'Minister')
         
     return line

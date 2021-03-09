@@ -256,8 +256,7 @@ for filename in files[:24]:
         #pdb.set_trace()
         # to avoid whitespace before interjections; like ' (Heiterkeit bei SPD)'
         line = line.lstrip()
-        if wp == 3:
-            line = helper.clean_line_bb(line)
+        line = helper.clean_line_bb(line)
 
         # grabs date, goes to next line until it is captured
         if not date_captured and DATE_CAPTURE.search(line):
@@ -348,7 +347,7 @@ for filename in files[:24]:
                 s = OFFICIALS_MARK.match(line)
                 new_speaker = str(s)
                 if wp == 3:
-                    new_speaker = re.sub(' +', ' ', s.group(0)) + ' ' + re.sub(' +', ' ', s.group(3))
+                    new_speaker = re.sub(' +', ' ', s.group(0))
                     ministerium = 'interstellar affairs'
                     #ministerium = re.sub(' +', ' ', s.group(3)).replace(':', '').replace("<poi_end>", '').strip()
                     #ministerium = re.sub('[If]\S+r', 'für', ministerium)
@@ -405,8 +404,10 @@ for filename in files[:24]:
                         party = 'GRÜNE'
                     party = party.replace(':', '')
                     
-            if executive:
-                new_speaker, ministerium = helper.minister_handler(new_speaker, wp)
+            if role == 'executive':
+                new_speaker, ministerium = helper.minister_handler_bb(new_speaker, wp)
+            elif role == 'state secretary':
+                new_speaker, ministerium = helper.statesec_handler_bb(new_speaker, wp)
                 
 
         # saves speech, if new speaker is detected:
