@@ -30,15 +30,15 @@ MINISTERS_WP6 = ['Woidke', 'Görke', 'Schröter', 'Markov', 'Ludwig', 'Golze', '
                  'Gerber', 'Steinbach', 'Baaske', 'Ernst', 'Vogelsänger', 'Schneider', 'Kunst', 'Münch']
 
 # regular expressions to capture speeches of one session
-BEGIN_STRING = r'^(<poi_begin>)?s*?(?:Beginn\s+der\s+Sitzung|\(Fortsetzung\s+der\s+Sitzung|Beginn\s+der\s+[0-9]{1,2}\.\s+Sitzung)(?::\s+(?:[0-9]{1,2}[.:][0-9]{1,2}|[0-9]{1,2})\s+Uhr|\s+am\s+[0-9]{1,2}\.)'
-END_STRING = r'^(<poi_begin>)?s*?\(?(?:Ende|Schluss)\s+(?:der\s+)?(?:[0-9]{1,2}\.\s+)?Sitzung(?:\s+am\s+[0-9]{1,2}\.\s+.+?(?:\s+[0-9]{4})?)?:?\s+(?:[0-9]{1,2}[.:][0-9]{1,2}|[0-9]{1,2})\s+Uhr'
+BEGIN_STRING = r'^(<poi_begin>)?s*?(?:Beginn\s+(:?<poi_end>)?der\s+(:?<poi_end>)?Sitzung|\(Fortsetzung\s+der\s+Sitzung|Beginn\s+der\s+[0-9]{1,2}\.\s+Sitzung)(?::\s+(?:[0-9]{1,2}[.:][0-9]{1,2}|[0-9]{1,2})\s+Uhr|\s+am\s+[0-9]{1,2}\.)'
+END_STRING = r'^(<poi_begin>)?s*?\(?(?:Ende|Schluss)\s+(?:der\s+)?(<poi_end>|<poi_begin>)?(?:[0-9]{1,2}\.\s+)?Sitzung(?:\s+am\s+[0-9]{1,2}\.\s+.+?(?:\s+[0-9]{4})?)?:?\s+(<poi_end>|<poi_begin>)?(?:[0-9]{1,2}[.:][0-9]{1,2}|[0-9]{1,2})\s+Uhr'
 CHAIR_STRING = r'^(<poi_begin>)?s*?(Alterspräsident(?:in)?|Präsident(?:in)?|Vizepräsident(?:in)?)\s+(.+):'
 SPEAKER_STRING = r'^(<poi_begin>)?s*?(.+?)\s+(?:<poi_end>)?(?:<poi_begin>)?\((.+?)\)(?:<poi_end>)?:'
 COMMITTEE_STRING = r'^(.+?)\s+\((Vorsitzender?\s+(?:des|der)\s+(Haupt|Untersuchungs|Petitions)?(?:[Aa]usschusses|Enquetekommission).+)'
 EXECUTIVE_STRING_SHORT = r'^(<poi_begin>)?s*?(Ministerpräsident(?:in)?|Minister(?:in)?)\s+(.+?):'
 EXECUTIVE_STRING_LONG = r'^(<poi_begin>)?s*?(Minister(?:in)?)\s+((?:für|der|des\s+Innern)\s+.+)'
 EXECUTIVE_STOP_CHARACTERS_STRING = r'[,]'
-OFFICIALS_STRING = r'^(<poi_begin>)?s*?(Staatssekretär(?:in)?)\s+(?:(.+?):|(im.+))'
+OFFICIALS_STRING = r'^(?:<poi_begin>)?s*?(Staatssekretär(?:in)?)\s+(?:(.+?):|(im.+))'
 LAKD_STRING = r'^(<poi_begin>)?s*?(.+?)\s+\(LAkD'
 DATA_PROTECTION_STRING = r'^(<poi_begin>)?s*?(.+?)\s+\(Landesbeauftragter?\s+für'
 LRH_STRING = r'^(<poi_begin>)?s*?(?:Herr\s+)?Weiser\s+\(Präsident\s+des\s+Landesrechnungshofes|Präsident\s+des\s+Landesrechnungshofe?s\s+Weiser'
@@ -181,7 +181,7 @@ log_sessions = []
 # debug mode
 debug = True
 
-for filename in files[:6]:
+for filename in files[:24]:
 
     wp, session, date = int(filename[11:12]), int(filename[13:16]), None
     print(wp, session)
@@ -256,11 +256,13 @@ for filename in files[:6]:
         #pdb.set_trace()
         # to avoid whitespace before interjections; like ' (Heiterkeit bei SPD)'
         line = line.lstrip()
-        #line = helper.clean_line_sh_14(line)
+        if wp == 3:
+            line = helper.clean_line_bb(line)
 
         # grabs date, goes to next line until it is captured
         if not date_captured and DATE_CAPTURE.search(line):
             date = DATE_CAPTURE.search(line).group(0)
+            date = date.replace('<poi_begin>', '').replace('<poi_end>', '').strip()
             try:
                 date = datetime.strptime(date, '%d. %B %Y').strftime('%Y-%m-%d')
             except ValueError:
@@ -290,6 +292,7 @@ for filename in files[:6]:
                 poi = False
                 # poi_prev = True
                 line = line.replace('<poi_end>', '')
+
             else:
                 issue = issue + ' ' + line
 
@@ -308,8 +311,8 @@ for filename in files[:6]:
                 role = 'chair'
                 poi_prev = False
                 ministerium = None
-            elif EXECUTIVE_MARK.match(line):
-                s = EXECUTIVE_MARK.match(line)
+            elif EXECUTIVE_MARK_SHORT.match(line):
+                s = EXECUTIVE_MARK_SHORT.match(line)
                 if wp == 3:
                     new_speaker = re.sub(' +', ' ', s.group(2)) + ' ' + re.sub(' +', ' ', s.group(3))
                     ministerium = 'interstellar affairs'
@@ -324,14 +327,39 @@ for filename in files[:6]:
                 executive = True
                 servant = False
                 poi_prev = False
+            elif EXECUTIVE_MARK_LONG.match(line):
+                s = EXECUTIVE_MARK_LONG.match(line)
+                if wp == 3:
+                    new_speaker = re.sub(' +', ' ', s.group(2)) + ' ' + re.sub(' +', ' ', s.group(3))
+                    ministerium = 'interstellar affairs'
+                    #ministerium = re.sub(' +', ' ', s.group(3)).replace(':', '').replace("<poi_end>", '').strip()
+                    #ministerium = re.sub('[If]\S+r', 'für', ministerium)
+                else:
+                    new_speaker = re.sub(' +', ' ', s.group(1))
+                    #ministerium = re.sub(' +', ' ', s.group(3)).replace(':', '').replace("<poi_end>", '').strip()
+                role = 'executive'
+                party = None
+                president = False
+                executive = True
+                servant = False
+                poi_prev = False
+                line = ''
             elif OFFICIALS_MARK.match(line):
                 s = OFFICIALS_MARK.match(line)
                 new_speaker = str(s)
+                if wp == 3:
+                    new_speaker = re.sub(' +', ' ', s.group(0)) + ' ' + re.sub(' +', ' ', s.group(3))
+                    ministerium = 'interstellar affairs'
+                    #ministerium = re.sub(' +', ' ', s.group(3)).replace(':', '').replace("<poi_end>", '').strip()
+                    #ministerium = re.sub('[If]\S+r', 'für', ministerium)
+                else:
+                    new_speaker = re.sub(' +', ' ', s.group(1))
+                    #ministerium = re.sub(' +', ' ', s.group(3)).replace(':', '').replace("<poi_end>", '').strip()
                 #new_speaker = re.sub(' +', ' ', s.group(1)) +  ' ' + re.sub(' +', ' ', s.group(2))
                 party = None
                 president = False
-                executive = False
-                servant = True
+                executive = True
+                servant = False
                 role = 'state secretary'
                 poi_prev = False
                 ministerium = None
@@ -343,7 +371,7 @@ for filename in files[:6]:
                     new_speaker = re.sub(' +', ' ', s.group(1)).rstrip(')').rstrip('*')
                 president = False
                 executive = False
-                servant = False
+                servant = True
                 if wp == 3:
                     party = s.group(3)
                     party = re.sub(' +', '', party)
@@ -523,6 +551,7 @@ for filename in files[:6]:
                 if current_speaker is not None:
                     if INTERJECTION_END.search(line):
                         interjection_text.append(line)
+                        #print(line, 'if interjection; if not...')
                     # interjection_text.append(line)
                     interjection_text = [i.replace('-', '').rstrip() if i.rstrip().endswith('-') else i + ' ' for i in interjection_text]
                     interjection_text = ''.join(interjection_text)
@@ -584,6 +613,7 @@ for filename in files[:6]:
                 line = line.replace('<interjection_begin>', '').replace('<interjection_end>', '')
                 if line and not line.isspace():
                     interjection_text.append(line)
+                    #print(line, '/// if interjection; else')
                     interjection_length += 1
                 continue
         if current_speaker is not None and not endend_with_interjection:
@@ -593,24 +623,28 @@ for filename in files[:6]:
                 if line and not line.isspace() and not INTERJECTION_END.search(line):
                     line = helper.cleans_line(line)
                     text.append(line)
+                    #print(line, '/// if current sp is not none and...; === if interj. complete')
                 continue
             else:
                 current_role = current_role.strip()
-
                 line = helper.cleans_line(line)
                 if line and not line.isspace():
                     text.append(line)
+                    #print(line, '/// if current sp is not none and...; else')
                 continue
 
         if s is not None:
             if ":* " in line:
                 line = line.split(':* ', 1)[-1]
+                #print(line, '/// if s is not none; if : in line')
             elif ":" in line:
                 line = line.split(':', 1)[-1]
+                #print(line, '/// if s is not none; if : in line')
             line = helper.cleans_line(line)
             text = []
             if line and not line.isspace():
                 text.append(line)
+                #print(line, '/// if s is not none; if line and not line.isspacr')
             current_speaker = new_speaker
             current_party = party
             current_president = president
