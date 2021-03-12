@@ -36,9 +36,10 @@ CHAIR_STRING = r'^(<poi_begin>)?s*?(Alterspräsident(?:in)?|Präsident(?:in)?|Vi
 SPEAKER_STRING = r'^(<poi_begin>)?s*?(.+?)\s+(?:<poi_end>)?(?:<poi_begin>)?\((.+?)\)(?:<poi_end>)?:'
 COMMITTEE_STRING = r'^(.+?)\s+\((Vorsitzender?\s+(?:des|der)\s+(Haupt|Untersuchungs|Petitions)?(?:[Aa]usschusses|Enquetekommission).+)'
 EXECUTIVE_STRING_SHORT = r'^(<poi_begin>)?s*?(Ministerpräsident(?:in)?|Minister(?:in)?)\s+(.+?):'
-EXECUTIVE_STRING_LONG = r'^(<poi_begin>)?s*?(Minister(?:in)?)\s+((?:für|der|des\s+Innern)\s+.+)'
+EXECUTIVE_STRING_LONG = r'^(<poi_begin>)?s*?(Minister(?:in)?)\s+(?:<poi_end>)?(?:<poi_begin>)?((?:für|der|des\s+Innern)\s+.+)'
 EXECUTIVE_STOP_CHARACTERS_STRING = r'[,]'
-OFFICIALS_STRING = r'^(?:<poi_begin>)?s*?(Staatssekretär(?:in)?)\s+(?:(.+?):|(im.+))'
+OFFICIALS_STRING = r'^(?:<poi_begin>)?s*?(Staatssekretär(?:in)?)\s+(?:<poi_end>)?(?:<poi_begin>)?(?:(.+?):|(im.+))'
+OFFICIALS_STRING_KANZ = r'^(?:<poi_begin>)?s*?(Chef\s*der\s*)?(Staatskanzlei\s*Staatssekretär\s*\w+):'
 LAKD_STRING = r'^(<poi_begin>)?s*?(.+?)\s+\(LAkD'
 DATA_PROTECTION_STRING = r'^(<poi_begin>)?s*?(.+?)\s+\(Landesbeauftragter?\s+für'
 LRH_STRING = r'^(<poi_begin>)?s*?(?:Herr\s+)?Weiser\s+\(Präsident\s+des\s+Landesrechnungshofes|Präsident\s+des\s+Landesrechnungshofe?s\s+Weiser'
@@ -64,6 +65,7 @@ EXECUTIVE_MARK_SHORT = re.compile(EXECUTIVE_STRING_SHORT)
 EXECUTIVE_MARK_LONG = re.compile(EXECUTIVE_STRING_LONG)
 EXECUTIVE_STOP_CHARACTERS = re.compile(EXECUTIVE_STOP_CHARACTERS_STRING)
 OFFICIALS_MARK = re.compile(OFFICIALS_STRING)
+OFFICIALS_MARK_KANZ = re.compile(OFFICIALS_STRING_KANZ)
 LRH_MARK = re.compile(LRH_STRING)
 LAKD_MARK = re.compile(LAKD_STRING)
 DATA_PROTECTION_MARK = re.compile(DATA_PROTECTION_STRING)
@@ -362,6 +364,25 @@ for filename in files[:24]:
                 role = 'state secretary'
                 poi_prev = False
                 ministerium = None
+            elif OFFICIALS_MARK_KANZ.match(line):
+                s = OFFICIALS_MARK_KANZ.match(line)
+                new_speaker = str(s)
+                if wp == 3:
+                    new_speaker = re.sub(' +', ' ', s.group(0))
+                    ministerium = 'interstellar affairs'
+                    #ministerium = re.sub(' +', ' ', s.group(3)).replace(':', '').replace("<poi_end>", '').strip()
+                    #ministerium = re.sub('[If]\S+r', 'für', ministerium)
+                else:
+                    new_speaker = re.sub(' +', ' ', s.group(1))
+                    #ministerium = re.sub(' +', ' ', s.group(3)).replace(':', '').replace("<poi_end>", '').strip()
+                #new_speaker = re.sub(' +', ' ', s.group(1)) +  ' ' + re.sub(' +', ' ', s.group(2))
+                party = None
+                president = False
+                executive = True
+                servant = False
+                role = 'state secretary'
+                poi_prev = False
+                ministerium = None
             elif SPEAKER_MARK.match(line):
                 s = SPEAKER_MARK.match(line)
                 if wp == 3:
@@ -637,6 +658,9 @@ for filename in files[:24]:
         if s is not None:
             if ":* " in line:
                 line = line.split(':* ', 1)[-1]
+                #print(line, '/// if s is not none; if : in line')
+            elif ": *" in line:
+                line = line.split(': *', 1)[-1]
                 #print(line, '/// if s is not none; if : in line')
             elif ":" in line:
                 line = line.split(':', 1)[-1]

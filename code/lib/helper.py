@@ -601,13 +601,13 @@ def minister_handler_bb(speaker, wp):
         if 'Birthler' in speaker or 'Landwirtschaft' in speaker:
             speaker = 'Minister Birthler'
             ministerium = 'Landwirtschaft, Umweltschutz und Raumordnung'
-        elif 'Fürniß' in speaker:
+        elif 'Fürniß' in speaker or 'Wirtschaft':
             speaker = 'Minister Dr. Fürniß'
             ministerium = 'Wirtschaft'
         elif 'Hackel' in speaker or 'Wissenschaft' in speaker:
             speaker = 'Minister Dr. Hackel'
             ministerium = 'Wissenschaft, Forschung und Kultur'
-        elif 'Meyer' in speaker or 'Stadtentwicklung' in speaker:
+        elif 'Meyer' in speaker or 'Stadtentwicklung' in speaker or 'Wohnen' in speaker:
             speaker = 'Minister Meyer'           
             ministerium = 'Stadtentwicklung, Wohnen und Verkehr'
         elif 'Reiche' in speaker or 'Bildung' in speaker:
@@ -633,35 +633,41 @@ def statesec_handler_bb(speaker, wp):
     ministerium = ''
     if wp == 3:
         if 'somebody' in speaker or 'Landwirtschaft' in speaker:
-            speaker = ''
+            speaker = 'Statesec'
             ministerium = 'Landwirtschaft, Umweltschutz und Raumordnung'
-        elif 'somebody' in speaker:
-            speaker = ''
+        elif 'Dr. Vogel' in speaker:
+            speaker = 'Staatssekretär Dr. Vogel'
             ministerium = 'Wirtschaft'
-        elif 'somebody' in speaker or 'Wissenschaft' in speaker:
-            speaker = ''
+        elif 'Prof. Dr. Weber' in speaker or 'Wissenschaft' in speaker:
+            speaker = 'Staatssekretär Prof. Dr. Weber'
             ministerium = 'Wissenschaft, Forschung und Kultur'
         elif 'Mentrup' in speaker:
             speaker = 'Staatssekretär Dr. Mentrup'           
             ministerium = 'Finanzen'
-        elif 'somebody' in speaker or 'Stadtentwicklung' in speaker:
-            speaker = ''           
+        elif 'Appel' in speaker or 'Stadtentwicklung' in speaker:
+            speaker = 'Staatssekretär Appel'           
             ministerium = 'Stadtentwicklung, Wohnen und Verkehr'
-        elif 'somebody' in speaker or 'Bildung' in speaker:
-            speaker = ''
+        elif 'Szymanski' in speaker or 'Bildung' in speaker:
+            speaker = 'Staatssekretär Szymanski'
             ministerium = 'Bildung, Jugend und Sport'
-        elif 'somebody' in speaker or 'Justiz' in speaker:
-            speaker = ''
+        elif 'Stange' in speaker or 'Justiz' in speaker:
+            speaker = 'Staatssekretär Stange'
             ministerium = 'Justiz und für Europaangelegenheiten'
         elif 'somebody' in speaker:
-            speaker = ''
+            speaker = 'Statesec'
             ministerium = 'Innern'
         elif 'somebody' in speaker:
-            speaker = ''
+            speaker = 'Statesec'
             ministerium = 'Finanzen'
-        elif 'somebody' in speaker or 'Arbeit' in speaker:
-            speaker = ''
+        elif 'Schirmer' in speaker or 'Arbeit' in speaker:
+            speaker = 'Staatssekretär Schirmer'
             ministerium = 'Arbeit, Soziales, Gesundheit und Frauen'
+        elif 'Speer' in speaker or 'Staatskanzlei' in speaker:
+            speaker = 'Staatssekretär Speer'
+            ministerium = 'Staatskanzlei'
+        elif 'Bro' in speaker or 'Staatskanzlei' in speaker:
+            speaker = 'Staatssekretär Brouër'
+            ministerium = 'Staatskanzlei'
         
     return(speaker, ministerium)
 
@@ -671,27 +677,149 @@ def clean_speaker_bb(speaker, wp):
     if wp == 3:        
         if 'Schippe' in speaker:
             speaker = 'Schippel'
-        elif 'Knnblich' in speaker:
+        elif 'Dr. Kn' in speaker or 'Dr. Kr' in speaker or 'Dr. Film' in speaker or 'bli' in speaker or 'Präsi' in speaker:
             speaker = 'Präsident Dr. Knoblich'
-        elif 'ohlich' in speaker:
-            speaker = 'Präsident Dr. Knoblich'
-        elif 'Kneblich' in speaker:
-            speaker = 'Präsident Dr. Knoblich'
-        elif 'aber' in speaker:
+        elif 'aber' in speaker or 'Haherniann' in speaker or 'Ha ' in speaker or 'H a' in speaker or 'Da' in speaker or 'Vize' in speaker:
             speaker = 'Vizepräsident Habermann'
+        elif 'arth' in speaker:
+            speaker = 'Frau Hesselbarth'
+        elif 'wski' in speaker or ' ski' in speaker or 'Donibronski' in speaker or '1/4) milirowsk i' in speaker:
+            speaker = 'Dombrowski'
+        elif ' res' in speaker:
+            speaker = 'Domres'
+        elif 'dke' in speaker:
+            speaker = 'Dr. Woidke'
         elif 'Birthier' in speaker:
             speaker = 'Minister Birthler'
-        elif 'Schuld' in speaker:
+        elif 'Schuld' in speaker or 'Schu ' in speaker or 'Sehuldt' in speaker or 'Schulfit' in speaker:
             speaker = 'Schuldt'
-        elif 'Schön' in speaker:
+        elif 'Schirmet' in speaker:
+            speaker = 'Schirmer'
+        elif 'manski' in speaker:
+            speaker = 'Staatssekretär Szymanski'
+        elif 'Schön' in speaker or 'Ön bohm' in speaker or 'Schiinhohm' in speaker:
             speaker = 'Minister Schönbohm'
         elif 'Scheiter' in speaker:
             speaker = 'Minister Prof. Dr. Schelter'
+        elif 'Hacke!' in speaker:
+            speaker = 'Minister Dr. Hackel'
+        elif 'Konzaek' in speaker or 'zack' in speaker:
+            speaker = 'Konzack'
+        elif 'Bisk-y' in speaker or 'Dr. Bisl.).' in speaker or 'Biskv' in speaker or 'Biskr'in speaker or 'Dr. Bis4' in speaker:
+            speaker = 'Prof. Dr. Bisky'
+        elif "W'arnick" in speaker:
+            speaker = 'Warnick'
+        elif 'FürniI3' in speaker or 'Fürnil!' in speaker or 'Ni rnifl' in speaker or 'Fürnils' in speaker or 'Fürnifl' in speaker :
+            speaker = 'Minister Fürniß'
+        elif 'Dr. Schumann' in speaker:
+            speaker = 'Prof. Dr. Schumann'
+        elif 'Weh ' in speaker or 'Wehfan' in speaker or 'ehlan' in speaker:
+            speaker = 'Frau Wehlan'
+        elif 'Frau M üller' in speaker:
+            speaker = 'Frau Müller'
+        elif 'Dr.M iebke' in speaker or 'iehke' in speaker:
+            speaker = 'Dr. Wiebke'
+        elif 'nschk' in speaker or 'Dr. T' in speaker or ' ichke' in speaker or 'Dr. 1 run sch ke' in speaker or 'Urlinselke' in speaker:
+            speaker = 'Dr. Trunschke'
+        elif 'Arni' in speaker:
+            speaker = 'von Arnim'
+        elif 'Ludmig' in speaker or 'Ludeig' in speaker:
+            speaker = 'Ludwig'
+        elif 'Eitler' in speaker or 'Fahler' in speaker or 'Ehlcr' in speaker:
+            speaker = 'Dr. Ehler'
+        elif 'Bimeyer' in speaker or 'Home' in speaker or 'lomeyer' in speaker or 'Humeyer' in speaker or 'florneyer' in speaker or 'Ilorneyer' in speaker:
+            speaker = 'Homeyer'
+        elif 'Lunacel.' in speaker or 'acek' in speaker:
+            speaker = 'Lunacek'
+        elif 'Frau Thicl-Vigh' in speaker:
+            speaker = 'Frau Thiel-Vigh'
+        elif 'Boehnyi' in speaker or 'Breetnevi' in speaker or 'Bocho%%' in speaker or 'Bochon' in speaker or 'Buch' in speaker or 'BOCIION1' in speaker or 'Bodin%' in speaker:
+            speaker = 'Bochow'
+        elif '!lehn' in speaker:
+            speaker = 'Helm'
+        elif 'Gemniel' in speaker or 'Gemme' in speaker or 'Gern' in speaker:
+            speaker = 'Gemmel'
+        elif '%Varniels' in speaker or 'arnick' in speaker:
+            speaker = 'Warnick'
+        elif '"lack' in speaker or 'Tack' in speaker or 'lack' in speaker:
+            speaker = 'Frau Tack'
+        elif 'Se hrey' in speaker or 'Sehrey' in speaker or 'Schrei' in speaker or 'Schrev' in speaker:
+            speaker = 'Schrey'
+        elif 'Sches' in speaker or 'Sehöps' in speaker or 'Schiips' in speaker:
+            speaker = 'Schöps'
+        elif 'Dcllmann' in speaker or 'Del' in speaker or 'Denntann' in speaker:
+            speaker = 'Dellmann'
+        elif 'Frau Siel-ie' in speaker or 'Siehke' in speaker:
+            speaker = 'Frau Siebke'
+        elif 'Enkelntann' in speaker or 'Tran ' in speaker:
+            speaker = 'Frau Dr. Enkelmann'
+        elif 'Feehner' in speaker or 'Fechser' in speaker or 'Feeriner' in speaker:
+            speaker = 'Frau Fechner'
+        elif 'rist' in speaker:
+            speaker = 'Christoffers'
+        elif 'Stnlira wa' in speaker or 'Stuhrawa' in speaker or 'Stnbra' in speaker :
+            speaker = 'Frau Stobrawa'
+        elif '11 erner' in speaker:
+            speaker = 'Werner'
+        elif "'l I üller" in speaker or 'M üller' in speaker:
+            speaker = 'Müller'
+        elif 'Frau Bi rk holz' in speaker:
+            speaker = 'Frau Birkholz'
+        elif 'Pctke' in speaker:
+            speaker = 'Petke'
+        elif 'Karner' in speaker or 'harnet' in speaker:
+            speaker = 'Karney'
+        elif 'Wohlan' in speaker:
+            speaker = 'Frau Wehlan'
+        elif 'NN argner' in speaker:
+            speaker = 'Dr. Wagner'
+        elif 'Firnehurg' in speaker or 'Firrieburg' in speaker:
+            speaker = 'Firneburg'
+        elif 'Frau Riehstein' in speaker:
+            speaker = 'Frau Richstein'
+        elif 'Sch ulze' in speaker:
+            speaker = 'Schulze'
+        elif 'Senftieben' in speaker or 'Senftlehen' in speaker:
+            speaker = 'Senftleben'
+        elif 'Scrhöder' in speaker or 'Sehröder' in speaker or 'Sehrüder' in speaker or 'Sehr ' in speaker:
+            speaker = 'Frau Dr. Schröder'
+        elif '13leehinger' in speaker:
+            speaker = 'Frau Blechinger'
+        elif 'Kallenhach' in speaker:
+            speaker = 'Dr. Kallenbach'
+        elif '%letze' in speaker:
+            speaker = 'Vietze'
+        elif 'Frau NN ulff' in speaker:
+            speaker = 'Frau Wolff'
+        elif speaker == 'iel':
+            speaker = 'Thiel'
+        elif 'Dobherstein' in speaker or 'Dubberstein' in speaker:
+            speaker = 'Dobberstein'
+        elif 'Sarraelt' in speaker:
+            speaker = 'Sarrach'
+        elif "N'ogelsänger" in speaker:
+            speaker = 'Vogelsänger'
+        elif 'kuhnert' in speaker or 'Kiihnert' in speaker or 'Kuh ' in speaker:
+            speaker = 'Kuhnert'
+        elif '11luschalla' in speaker:
+            speaker = 'Muschalla'
+        elif 'kliesch' in speaker:
+            speaker = 'Kliesch'
+        elif 'Kiew' in speaker:
+            speaker = 'Klein'
+        
+            
     return speaker
 
 
 def clean_line_bb(line):
     if 'Nlinister' in line:
         line = line.replace('Nlinister', 'Minister')
+    elif '.1 ustiz' in line:
+        line = line.replace('.1 ustiz', 'Justiz')
+    elif 'Mohnen' in line:
+        line = line.replace('Mohnen', 'Wohnen')
+    elif 'Stadtentwieklum' in line or 'Stadtentssicklung' in line:
+        line = line.replace('Stadtentssicklung', 'Stadtentwicklung')
         
     return line
